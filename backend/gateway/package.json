@@ -24,8 +24,10 @@
     "directory": "backend/gateway"
   },
   "dependencies": {
+    "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "express-http-proxy": "^2.1.2",
     "morgan": "^1.12.0"
   }
 }

@@ -7,6 +7,10 @@ venv/
 .env
 .env.local
 .env.*.local
+serviceAccountKey*.json
+*serviceAccount*.json
+*credentials*.json
+*.pem
 
 # Build outputs
 dist/

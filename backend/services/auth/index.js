@@ -1,6 +1,9 @@
 import express from "express";
 import dotenv from "dotenv";
 import morgan from "morgan";
+import { connectDB } from "./config/db.js";
+
+import authRoutes from "./routes/auth.route.js";
 
 dotenv.config({ quiet: true });
 
@@ -11,14 +14,21 @@ app.use(morgan("dev"));
 app.use(express.json());
 
 // Auth service health check
-app.get("/health", (req, res) => {
+app.get(["/", "/health"], (req, res) => {
   res.status(200).json({
-    status: "healthy",
+    success: true,
     service: "auth-service",
+    message: "Authentication Service is up and secure 🔐🛡️",
+    status: "healthy",
     timestamp: new Date().toISOString(),
   });
 });
 
+// Mount Auth routes
+app.use("/", authRoutes);
+app.use("/auth", authRoutes);
+
+await connectDB();
 app.listen(PORT, () => {
   console.log(
     `\n🔐 [AUTH SERVICE] 🛡️  Auth server is running on port: ${PORT} 🚀`,
@@ -26,4 +36,3 @@ app.listen(PORT, () => {
   console.log(`📡 URL: http://localhost:${PORT}`);
   console.log(`🔑 Health: http://localhost:${PORT}/health\n`);
 });
-
