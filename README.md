@@ -43,8 +43,8 @@ graph TD
     %% Auth Service Actions
     AuthService -- "Verify ID Token" --> Firebase
     AuthService -- "Find or Create User" --> MongoDB
-    AuthService -- "Save session-<uuid>" --> Redis
-    AuthService -- "Set-Cookie: session=<uuid>" --> Client
+    AuthService -- "Save session-UUID" --> Redis
+    AuthService -- "Set-Cookie session=UUID" --> Client
 ```
 
 ---
@@ -155,8 +155,8 @@ sequenceDiagram
     Auth->>Mongo: findOne({ firebaseUid }) or create new User
     Mongo-->>Auth: MongoDB User Document (_id, name, email...)
     Note over Auth: Generate UUID sessionId
-    Auth->>Redis: SET session-<uuid> (JSON user data, TTL: 7 days)
-    Auth-->>Gateway: 200 OK + Set-Cookie: session=<uuid>; HttpOnly
+    Auth->>Redis: SET session-UUID (JSON user data, TTL: 7 days)
+    Auth-->>Gateway: 200 OK + Set-Cookie session=UUID (HttpOnly)
     Gateway-->>React: 200 OK + Set-Cookie passed to browser
     React->>React: Updates state -> Renders UserProfileCard
 ```
@@ -175,21 +175,21 @@ sequenceDiagram
     participant Redis as ⚡ Redis
     participant Microservice as ⚙️ Downstream Service
 
-    React->>Gateway: GET /me (Cookie: session=<uuid>)
+    React->>Gateway: GET /me (Cookie: session=UUID)
     Note over Gateway: checkAuth Middleware triggers
     Gateway->>Gateway: Read req.cookies.session
     alt No Cookie Present
-        Gateway-->>React: 401 Unauthorized ("No active session found")
+        Gateway-->>React: 401 Unauthorized (No active session found)
     else Cookie Present
-        Gateway->>Redis: GET session-<uuid>
-        alt Session not found / expired in Redis
+        Gateway->>Redis: GET session-UUID
+        alt Session not found or expired in Redis
             Redis-->>Gateway: null
-            Gateway-->>React: 401 Unauthorized ("Session expired or invalid")
+            Gateway-->>React: 401 Unauthorized (Session expired or invalid)
         else Session Valid
-            Redis-->>Gateway: {"userId": "...", "name": "...", "email": "..."}
-            Note over Gateway: Attach req.user<br/>Set req.headers['x-user-id']<br/>Set req.headers['x-user-email']
+            Redis-->>Gateway: user session JSON
+            Note over Gateway: Attach req.user<br/>Forward x-user-id and x-user-email
             Gateway->>Microservice: Forward enriched request (or return response)
-            Gateway-->>React: 200 OK { success: true, data: req.user }
+            Gateway-->>React: 200 OK (User Data)
         end
     end
 ```
