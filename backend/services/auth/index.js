@@ -1,9 +1,11 @@
 import express from "express";
 import dotenv from "dotenv";
 import morgan from "morgan";
+import cookieParser from "cookie-parser";
 import { connectDB } from "./config/db.js";
 
 import authRoutes from "./routes/auth.route.js";
+import { errorHandler, notFound } from "../../shared/middleware/error.middleware.js";
 
 dotenv.config({ quiet: true });
 
@@ -12,6 +14,7 @@ const PORT = process.env.PORT || 2000;
 
 app.use(morgan("dev"));
 app.use(express.json());
+app.use(cookieParser());
 
 // Auth service health check
 app.get(["/", "/health"], (req, res) => {
@@ -27,6 +30,10 @@ app.get(["/", "/health"], (req, res) => {
 // Mount Auth routes
 app.use("/", authRoutes);
 app.use("/auth", authRoutes);
+
+// 404 & Global Error Handling
+app.use(notFound);
+app.use(errorHandler);
 
 await connectDB();
 app.listen(PORT, () => {
