@@ -1,33 +1,17 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { signInWithPopup, signOut } from "firebase/auth";
 import { auth, googleProvider } from "@/utils/firebase";
 import api from "@/utils/axios";
-import { getUser } from "@/features/getUser";
+import { setUserData } from "@/redux/slices/userSlice";
 import LoginCard from "@/components/auth/LoginCard";
 import UserProfileCard from "@/components/auth/UserProfileCard";
 
 export default function Home() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const dispatch = useDispatch();
+  const user = useSelector((state) => state.user.userData);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  // Check for existing session via Gateway checkAuth on mount
-  useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const currentUser = await getUser();
-        if (currentUser) {
-          setUser(currentUser);
-        }
-      } catch (err) {
-        console.error("Session check failed:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkSession();
-  }, []);
 
   const handleGoogleLogin = async () => {
     try {
@@ -40,12 +24,13 @@ export default function Home() {
 
       // 2. Authenticate with Backend via Gateway
       const response = await api.post("/auth/login", { token });
-      setUser(response.data?.data || response.data?.user || response.data);
+      const userData = response.data?.data || response.data?.user || response.data;
+      dispatch(setUserData(userData));
     } catch (err) {
       console.error("Login error:", err);
       if (err.code !== "auth/popup-closed-by-user") {
         setError(
-          err.response?.data?.message || err.message || "Failed to sign in"
+          err.response?.data?.message || err.message || "Failed to sign in",
         );
       }
     } finally {
@@ -60,7 +45,7 @@ export default function Home() {
 
       // 2. Sign out of Firebase client
       await signOut(auth);
-      setUser(null);
+      dispatch(setUserData(null));
     } catch (err) {
       console.error("Logout error:", err);
     }

@@ -3,7 +3,11 @@ import { getAuth } from "firebase-admin/auth";
 import firebaseApp from "../config/firebase.js";
 import User from "../models/auth.model.js";
 import redis from "../../../shared/redis/redis.js";
-import { sendSuccess, asyncHandler, AppError } from "../../../shared/utils/response.js";
+import {
+  sendSuccess,
+  asyncHandler,
+  AppError,
+} from "../../../shared/utils/response.js";
 
 export const login = asyncHandler(async (req, res) => {
   const { token } = req.body;
@@ -33,7 +37,7 @@ export const login = asyncHandler(async (req, res) => {
       avatar: user.avatar,
     }),
     "EX",
-    7 * 24 * 60 * 60
+    7 * 24 * 60 * 60,
   );
 
   res.cookie("session", sessionId, {
@@ -60,4 +64,4 @@ export const logout = asyncHandler(async (req, res) => {
   });
 
   return sendSuccess(res, null, "Logged out successfully ✅");
-});
+});
