@@ -1,0 +1,31 @@
+{
+  "name": "gateway",
+  "version": "1.0.0",
+  "description": "Central API Gateway for Multi-Agent AI architecture",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "keywords": [
+    "api-gateway",
+    "multi-agent",
+    "ai",
+    "microservices",
+    "reverse-proxy",
+    "express"
+  ],
+  "author": "Prince Sharma <143240999+itscoderprince@users.noreply.github.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/itscoderprince/Multi-Agent-AI.git",
+    "directory": "backend/gateway"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "morgan": "^1.12.0"
+  }
+}

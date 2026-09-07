@@ -1,0 +1,32 @@
+{
+  "name": "auth-service",
+  "version": "1.0.0",
+  "description": "Authentication and authorization service for Multi-Agent AI architecture",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "keywords": [
+    "auth",
+    "authentication",
+    "authorization",
+    "jwt",
+    "multi-agent",
+    "microservices",
+    "express"
+  ],
+  "author": "Prince Sharma <143240999+itscoderprince@users.noreply.github.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/itscoderprince/Multi-Agent-AI.git",
+    "directory": "backend/services/auth"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "morgan": "^1.12.0"
+  }
+}
