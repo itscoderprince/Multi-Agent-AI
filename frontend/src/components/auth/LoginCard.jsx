@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/card";
 import { GoogleIcon } from "@/components/icons/GoogleIcon";
 
-export function LoginCard({ onLogin, loading, error }) {
+export function LoginCard({ onLogin, onDemoLogin, loading, error }) {
   return (
     <Card className="w-full max-w-sm shadow-md">
       <CardHeader className="text-center">
@@ -32,6 +32,16 @@ export function LoginCard({ onLogin, loading, error }) {
           <GoogleIcon className="w-4 h-4" />
           <span>{loading ? "Signing in..." : "Continue with Google"}</span>
         </Button>
+        {onDemoLogin && (
+          <Button
+            onClick={onDemoLogin}
+            variant="ghost"
+            size="sm"
+            className="w-full text-xs text-muted-foreground hover:text-foreground cursor-pointer"
+          >
+            Explore Demo Workspace
+          </Button>
+        )}
       </CardContent>
     </Card>
   );

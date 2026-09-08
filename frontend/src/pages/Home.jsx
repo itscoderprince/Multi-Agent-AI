@@ -5,7 +5,7 @@ import { auth, googleProvider } from "@/utils/firebase";
 import api from "@/utils/axios";
 import { setUserData } from "@/redux/slices/userSlice";
 import LoginCard from "@/components/auth/LoginCard";
-import ChatLayout from "@/components/chat/ChatLayout";
+import ChatPage from "@/components/chat/ChatPage";
 
 export default function Home() {
   const dispatch = useDispatch();
@@ -38,27 +38,40 @@ export default function Home() {
     }
   };
 
+  const handleDemoLogin = () => {
+    dispatch(
+      setUserData({
+        userId: "demo-user-1",
+        name: "Demo User",
+        email: "developer@multiagent.ai",
+        avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=DemoUser",
+      })
+    );
+  };
+
   const handleLogout = async () => {
     try {
       // 1. Clear backend session in Redis & Cookie
       await api.post("/auth/logout").catch(() => {});
 
       // 2. Sign out of Firebase client
-      await signOut(auth);
+      await signOut(auth).catch(() => {});
       dispatch(setUserData(null));
     } catch (err) {
       console.error("Logout error:", err);
+      dispatch(setUserData(null));
     }
   };
 
   if (user) {
-    return <ChatLayout user={user} onLogout={handleLogout} />;
+    return <ChatPage user={user} onLogout={handleLogout} />;
   }
 
   return (
     <main className="min-h-screen flex items-center justify-center p-4 bg-muted/20">
       <LoginCard
         onLogin={handleGoogleLogin}
+        onDemoLogin={handleDemoLogin}
         loading={loading}
         error={error}
       />
