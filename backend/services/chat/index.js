@@ -1,0 +1,45 @@
+import express from "express";
+import dotenv from "dotenv";
+import cookieParser from "cookie-parser";
+import { connectDB } from "./configs/db.js";
+import chatRoutes from "./routes/chat.route.js";
+import {
+  errorHandler,
+  notFound,
+} from "../../shared/middleware/error.middleware.js";
+
+dotenv.config({ quiet: true });
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.use(express.json());
+app.use(cookieParser());
+
+// Chat service health check
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    success: true,
+    service: "chat-service",
+    message: "Chat Service is up and running 💬🚀",
+    status: "healthy",
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// Mount Chat routes
+app.use("/", chatRoutes);
+
+// 404 & Global Error Handling
+app.use(notFound);
+app.use(errorHandler);
+
+await connectDB();
+
+app.listen(PORT, () => {
+  console.log(
+    `\n💬 [CHAT SERVICE] 🚀 Chat server is running on port: ${PORT} ✨`,
+  );
+  console.log(`📡 URL: http://localhost:${PORT}`);
+  console.log(`🔑 Health: http://localhost:${PORT}/health\n`);
+});

@@ -5,7 +5,7 @@ import { auth, googleProvider } from "@/utils/firebase";
 import api from "@/utils/axios";
 import { setUserData } from "@/redux/slices/userSlice";
 import LoginCard from "@/components/auth/LoginCard";
-import UserProfileCard from "@/components/auth/UserProfileCard";
+import ChatLayout from "@/components/chat/ChatLayout";
 
 export default function Home() {
   const dispatch = useDispatch();
@@ -51,17 +51,17 @@ export default function Home() {
     }
   };
 
+  if (user) {
+    return <ChatLayout user={user} onLogout={handleLogout} />;
+  }
+
   return (
     <main className="min-h-screen flex items-center justify-center p-4 bg-muted/20">
-      {user ? (
-        <UserProfileCard user={user} onLogout={handleLogout} />
-      ) : (
-        <LoginCard
-          onLogin={handleGoogleLogin}
-          loading={loading}
-          error={error}
-        />
-      )}
+      <LoginCard
+        onLogin={handleGoogleLogin}
+        loading={loading}
+        error={error}
+      />
     </main>
   );
 }

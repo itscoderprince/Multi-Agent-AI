@@ -1,0 +1,37 @@
+{
+  "name": "chat-service",
+  "version": "1.0.0",
+  "description": "Chat and real-time messaging service for Multi-Agent AI architecture",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "keywords": [
+    "chat",
+    "messaging",
+    "multi-agent",
+    "ai",
+    "microservices",
+    "express",
+    "mongoose"
+  ],
+  "author": "Prince Sharma <143240999+itscoderprince@users.noreply.github.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/itscoderprince/Multi-Agent-AI.git",
+    "directory": "backend/services/chat"
+  },
+  "bugs": {
+    "url": "https://github.com/itscoderprince/Multi-Agent-AI/issues"
+  },
+  "homepage": "https://github.com/itscoderprince/Multi-Agent-AI#readme",
+  "dependencies": {
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "mongoose": "^9.9.5"
+  }
+}

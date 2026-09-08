@@ -34,6 +34,34 @@ app.use(
   }),
 );
 
+// Proxy to Chat Service (protected by checkAuth: injects x-user-id and x-user-email headers)
+app.use(
+  "/chat",
+  checkAuth,
+  proxy(process.env.CHAT_SERVICE || "http://localhost:3000", {
+    parseReqBody: false,
+    proxyReqOptDecorator: (proxyReqOpts, srcReq) => {
+      proxyReqOpts.headers["x-user-id"] = srcReq.user?.userId || "";
+      proxyReqOpts.headers["x-user-email"] = srcReq.user?.email || "";
+      return proxyReqOpts;
+    },
+  }),
+);
+
+// Proxy to Agent Service (protected by checkAuth: injects x-user-id and x-user-email headers)
+app.use(
+  "/agent",
+  checkAuth,
+  proxy(process.env.AGENT_SERVICE || "http://localhost:4000", {
+    parseReqBody: false,
+    proxyReqOptDecorator: (proxyReqOpts, srcReq) => {
+      proxyReqOpts.headers["x-user-id"] = srcReq.user?.userId || "";
+      proxyReqOpts.headers["x-user-email"] = srcReq.user?.email || "";
+      return proxyReqOpts;
+    },
+  }),
+);
+
 app.use(express.json());
 
 // Health check
