@@ -25,7 +25,7 @@ export default function MessageList({
 
   if (!messages || messages.length === 0) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-6 text-center max-w-2xl mx-auto">
+      <div className="h-full w-full overflow-y-auto flex flex-col items-center justify-center p-6 text-center max-w-2xl mx-auto">
         <div className="h-12 w-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-4 shadow-xs">
           <Bot className="h-6 w-6" />
         </div>
@@ -60,8 +60,8 @@ export default function MessageList({
   }
 
   return (
-    <ScrollArea className="flex-1 px-4 sm:px-8 py-6">
-      <div className="space-y-6 max-w-3xl mx-auto">
+    <ScrollArea className="h-full w-full">
+      <div className="px-4 sm:px-8 py-6 space-y-6 max-w-3xl mx-auto">
         {messages.map((msg, idx) => (
           <MessageItem
             key={msg._id || msg.id || idx}

@@ -20,7 +20,7 @@ export default function ChatMain({
 }) {
   return (
     <main
-      className={`flex-1 flex flex-col h-full overflow-hidden bg-background relative ${
+      className={`flex-1 flex flex-col h-full overflow-hidden bg-background relative min-w-0 ${
         className || ""
       }`}
     >
@@ -32,12 +32,14 @@ export default function ChatMain({
         hasArtifact={hasArtifact}
       />
 
-      <MessageList
-        messages={messages}
-        isLoading={isLoading}
-        onOpenArtifact={onOpenArtifact}
-        onSuggestionClick={onSuggestionClick}
-      />
+      <div className="flex-1 min-h-0 overflow-hidden flex flex-col relative">
+        <MessageList
+          messages={messages}
+          isLoading={isLoading}
+          onOpenArtifact={onOpenArtifact}
+          onSuggestionClick={onSuggestionClick}
+        />
+      </div>
 
       <ChatInputDock
         selectedAgent={selectedAgent}

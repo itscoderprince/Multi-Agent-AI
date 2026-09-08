@@ -1,6 +1,12 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Code2, PanelRightClose, PanelRightOpen } from "lucide-react";
+import ThemeToggle from "@/components/theme/ThemeToggle";
+import {
+  Sparkles,
+  Code2,
+  PanelRightClose,
+  PanelRightOpen,
+} from "lucide-react";
 
 export default function ChatHeader({
   title = "New Chat",
@@ -10,8 +16,8 @@ export default function ChatHeader({
   hasArtifact,
 }) {
   return (
-    <header className="h-14 px-6 border-b border-border/50 bg-background/80 backdrop-blur-md flex items-center justify-between shrink-0 select-none">
-      <div className="flex items-center gap-3 min-w-0">
+    <header className="h-14 px-4 sm:px-6 border-b border-border/50 bg-background/80 backdrop-blur-md flex items-center justify-between shrink-0 select-none gap-2">
+      <div className="flex items-center gap-2.5 min-w-0">
         <h2 className="text-sm font-semibold truncate tracking-tight text-foreground">
           {title}
         </h2>
@@ -24,12 +30,14 @@ export default function ChatHeader({
         </Badge>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+        <ThemeToggle />
+
         <Button
           variant={isArtifactOpen ? "secondary" : "ghost"}
           size="sm"
           onClick={onToggleArtifact}
-          className="h-8 gap-1.5 text-xs rounded-lg px-2.5"
+          className="h-8 gap-1.5 text-xs rounded-lg px-2.5 cursor-pointer"
           title={isArtifactOpen ? "Hide code artifact panel" : "View code artifact panel"}
         >
           <Code2 className="h-3.5 w-3.5" />

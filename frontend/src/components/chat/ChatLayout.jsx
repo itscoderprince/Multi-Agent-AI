@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import ChatSidebar from "./sidebar/ChatSidebar";
 import ChatMain from "./main/ChatMain";
 import ArtifactPanel from "./artifact/ArtifactPanel";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import api from "@/utils/axios";
 
 export default function ChatLayout({ user, onLogout }) {
@@ -177,41 +178,45 @@ export default function ChatLayout({ user, onLogout }) {
   const activeTitle = currentChat?.title || "New Chat";
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-background font-sans antialiased text-foreground">
-      {/* 1. Left Sidebar */}
-      <ChatSidebar
-        chats={chats}
-        activeChatId={activeChatId}
-        onSelectChat={handleSelectChat}
-        onNewChat={handleNewChat}
-        onDeleteChat={handleDeleteChat}
-        user={user}
-        onLogout={onLogout}
-      />
+    <SidebarProvider defaultOpen={true}>
+      <div className="flex h-screen w-screen overflow-hidden bg-background font-sans antialiased text-foreground">
+        {/* 1. Left Sidebar (Sidebar-07) */}
+        <ChatSidebar
+          chats={chats}
+          activeChatId={activeChatId}
+          onSelectChat={handleSelectChat}
+          onNewChat={handleNewChat}
+          onDeleteChat={handleDeleteChat}
+          user={user}
+          onLogout={onLogout}
+        />
 
-      {/* 2. Center Chat Area */}
-      <ChatMain
-        chatTitle={activeTitle}
-        activeAgent={selectedAgent}
-        isArtifactOpen={isArtifactOpen}
-        onToggleArtifact={() => setIsArtifactOpen((prev) => !prev)}
-        hasArtifact={Boolean(artifactData)}
-        messages={messages}
-        isLoading={isLoading}
-        selectedAgent={selectedAgent}
-        onSelectAgent={setSelectedAgent}
-        onSend={handleSendPrompt}
-        onStop={() => setIsLoading(false)}
-        onOpenArtifact={handleOpenArtifact}
-        onSuggestionClick={handleSendPrompt}
-      />
+        {/* 2. Main Content & Artifact Area */}
+        <SidebarInset className="flex flex-row flex-1 min-w-0 overflow-hidden h-svh bg-background">
+          <ChatMain
+            chatTitle={activeTitle}
+            activeAgent={selectedAgent}
+            isArtifactOpen={isArtifactOpen}
+            onToggleArtifact={() => setIsArtifactOpen((prev) => !prev)}
+            hasArtifact={Boolean(artifactData)}
+            messages={messages}
+            isLoading={isLoading}
+            selectedAgent={selectedAgent}
+            onSelectAgent={setSelectedAgent}
+            onSend={handleSendPrompt}
+            onStop={() => setIsLoading(false)}
+            onOpenArtifact={handleOpenArtifact}
+            onSuggestionClick={handleSendPrompt}
+          />
 
-      {/* 3. Right Code Artifact Panel */}
-      <ArtifactPanel
-        isOpen={isArtifactOpen}
-        artifact={artifactData}
-        onClose={() => setIsArtifactOpen(false)}
-      />
-    </div>
+          {/* 3. Right Code Artifact Panel */}
+          <ArtifactPanel
+            isOpen={isArtifactOpen}
+            artifact={artifactData}
+            onClose={() => setIsArtifactOpen(false)}
+          />
+        </SidebarInset>
+      </div>
+    </SidebarProvider>
   );
 }

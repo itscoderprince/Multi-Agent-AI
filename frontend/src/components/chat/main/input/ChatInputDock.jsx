@@ -9,7 +9,7 @@ export default function ChatInputDock({
   onStop,
 }) {
   return (
-    <div className="p-4 sm:p-6 pt-2 bg-gradient-to-t from-background via-background/90 to-transparent">
+    <div className="p-4 sm:p-6 pt-2 bg-gradient-to-t from-background via-background/90 to-transparent shrink-0">
       <div className="max-w-3xl mx-auto rounded-2xl border border-border/80 bg-card/70 backdrop-blur-xl shadow-lg focus-within:border-primary/40 focus-within:ring-2 focus-within:ring-primary/10 transition-all p-2 space-y-1.5">
         <AgentPills
           selectedAgent={selectedAgent}

@@ -18,8 +18,8 @@ export default function ChatHistoryList({
   }
 
   return (
-    <ScrollArea className="flex-1 px-3 py-2">
-      <div className="space-y-1">
+    <ScrollArea className="flex-1 px-2.5 py-1.5">
+      <div className="space-y-0.5">
         {chats.map((chat) => (
           <ChatHistoryItem
             key={chat._id || chat.id}

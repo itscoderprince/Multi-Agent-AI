@@ -19,20 +19,20 @@ export default function ChatHistoryItem({
     <div
       onClick={() => onSelect?.(chat._id || chat.id)}
       className={cn(
-        "group relative flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl text-sm font-medium cursor-pointer transition-all border border-transparent",
+        "group relative flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium cursor-pointer transition-all border border-transparent h-8",
         isActive
           ? "bg-accent text-accent-foreground border-border/40 shadow-xs"
           : "text-muted-foreground hover:bg-accent/40 hover:text-foreground"
       )}
     >
-      <div className="flex items-center gap-2.5 min-w-0 flex-1">
+      <div className="flex items-center gap-2 min-w-0 flex-1">
         <MessageSquare
           className={cn(
-            "h-4 w-4 shrink-0 transition-colors",
+            "h-3.5 w-3.5 shrink-0 transition-colors",
             isActive ? "text-primary" : "text-muted-foreground/70 group-hover:text-foreground"
           )}
         />
-        <span className="truncate text-xs sm:text-sm">{chat.title || "Untitled Chat"}</span>
+        <span className="truncate text-xs leading-none">{chat.title || "Untitled Chat"}</span>
       </div>
 
       <div
@@ -47,9 +47,9 @@ export default function ChatHistoryItem({
             <Button
               variant="ghost"
               size="icon"
-              className="h-6 w-6 rounded-md hover:bg-background/80"
+              className="h-5 w-5 rounded-md hover:bg-background/80 shrink-0"
             >
-              <MoreHorizontal className="h-3.5 w-3.5" />
+              <MoreHorizontal className="h-3 w-3" />
               <span className="sr-only">Actions</span>
             </Button>
           </DropdownMenuTrigger>
