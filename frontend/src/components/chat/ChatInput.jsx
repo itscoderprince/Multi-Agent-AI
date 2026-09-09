@@ -1,114 +1,146 @@
-import { GlobeIcon, ImageIcon, PaperclipIcon, ArrowUpIcon } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { ModelSelector } from "./ModelSelector"
+import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { ArrowUp, Globe, Paperclip, Mic, Loader2 } from "lucide-react";
+import api from "@/utils/axios";
+import createChat from "@/features/createChat";
+import { addChatData, setSelectChat } from "@/redux/slices/chatSlice";
+import { addMessageData } from "@/redux/slices/messageSlice";
+import { cn } from "cn";
 
-export function ChatInput({
-  input,
-  setInput,
-  onSend,
-  selectedAgent = "auto",
-  onSelectAgent,
-  isSearchActive = true,
-  setIsSearchActive,
-  isImageActive = false,
-  setIsImageActive,
-  className,
-}) {
+/**
+ * Modern AI Chat input component styled after DeepSeek / ChatGPT.
+ */
+const ChatInput = ({ value = "", onChange }) => {
+  const dispatch = useDispatch();
+  const selectedChat = useSelector((state) => state.chats.selectedChat);
+  const [loading, setLoading] = useState(false);
+  const [webSearch, setWebSearch] = useState(true);
+
+  const handleSend = async () => {
+    const trimmed = value.trim();
+    if (!trimmed || loading) return;
+
+    try {
+      setLoading(true);
+
+      let activeChat = selectedChat;
+      if (!activeChat?._id) {
+        activeChat = await createChat(trimmed.slice(0, 30));
+        if (!activeChat) return;
+        dispatch(addChatData(activeChat));
+        dispatch(setSelectChat(activeChat));
+      }
+
+      const { data } = await api.post(`/chat/${activeChat._id}/messages`, {
+        content: trimmed,
+        role: "user",
+      });
+
+      const savedMessage = data?.data || data;
+      if (savedMessage) dispatch(addMessageData(savedMessage));
+      onChange?.("");
+    } catch (err) {
+      console.error("Failed to send message:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault()
-      onSend?.()
+      e.preventDefault();
+      handleSend();
     }
-  }
+  };
+
+  const hasText = Boolean(value.trim());
 
   return (
-    <div
-      className={cn(
-        "rounded-[22px] border border-neutral-800/90 bg-[#1c1c1f] p-4 pb-3 shadow-xl shadow-black/20 focus-within:border-neutral-700/80 transition-all space-y-3",
-        className
-      )}
-    >
-      {/* Native textarea with zero nested backgrounds or borders */}
-      <textarea
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder="Message sarthiAi..."
-        rows={2}
-        className="w-full min-h-[44px] max-h-36 resize-none border-0 outline-none ring-0 focus:ring-0 focus:outline-none bg-transparent p-0 text-sm leading-relaxed text-neutral-100 placeholder:text-neutral-500 shadow-none block"
-      />
+    <div className="w-full max-w-3xl mx-auto px-4">
+      {/* DeepSeek Style Rounded Container */}
+      <div className="rounded-[26px] bg-[#22242a] p-3.5 shadow-xl transition-all">
+        <Textarea
+          value={value}
+          onChange={(e) => onChange?.(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Message SarthiAi"
+          rows={1}
+          disabled={loading}
+          className="no-scrollbar scrollbar-none [&::-webkit-scrollbar]:hidden min-h-11 max-h-36 resize-none rounded-none border-0 border-transparent bg-transparent dark:bg-transparent px-1 py-1 text-[15px] text-slate-100 placeholder:text-zinc-500 shadow-none outline-none ring-0 focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-transparent focus-visible:border-transparent leading-relaxed"
+        />
 
-      {/* Bottom toolbar */}
-      <div className="flex flex-wrap items-center justify-between gap-2 pt-0.5">
-        {/* Left tools: Model Selector + Search Badge + Image Badge */}
-        <div className="flex flex-wrap items-center gap-2">
-          <ModelSelector
-            selectedAgent={selectedAgent}
-            onSelectAgent={onSelectAgent}
-          />
-
-          {/* Search tool badge */}
-          <button
+        {/* Bottom Controls Bar */}
+        <div className="flex items-center justify-between pt-2">
+          {/* Left Action: Search Button */}
+          <Button
             type="button"
-            onClick={() => setIsSearchActive?.((prev) => !prev)}
+            variant="outline"
+            size="sm"
+            onClick={() => setWebSearch((prev) => !prev)}
             className={cn(
-              "h-8 px-3 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer select-none active:scale-95 border",
-              isSearchActive
-                ? "bg-[#4D6BFE]/15 text-[#6080ff] border-[#4D6BFE]/40 shadow-xs"
-                : "bg-[#252528] text-neutral-400 hover:text-neutral-200 hover:bg-[#2e2e32] border-neutral-700/60"
+              "h-8 rounded-full px-3 text-xs gap-1.5 font-medium transition-colors cursor-pointer",
+              webSearch
+                ? "bg-[#18263f] border-[#294a82] text-[#4d8eff] hover:bg-[#1f3254] hover:text-[#4d8eff]"
+                : "bg-white/5 border-white/10 text-zinc-300 hover:bg-white/10 hover:text-white"
             )}
-            title="Toggle Live Web Search"
           >
-            <GlobeIcon className="size-3.5" />
+            <Globe className="size-3.5" />
             <span>Search</span>
-          </button>
+          </Button>
 
-          {/* Image tool badge */}
-          <button
-            type="button"
-            onClick={() => setIsImageActive?.((prev) => !prev)}
-            className={cn(
-              "h-8 px-3 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer select-none active:scale-95 border",
-              isImageActive
-                ? "bg-purple-500/15 text-purple-300 border-purple-500/40 shadow-xs"
-                : "bg-[#252528] text-neutral-400 hover:text-neutral-200 hover:bg-[#2e2e32] border-neutral-700/60"
-            )}
-            title="Toggle Image Generation"
-          >
-            <ImageIcon className="size-3.5" />
-            <span>Image</span>
-          </button>
-        </div>
+          {/* Right Actions: Attachment, Mic, and Send */}
+          <div className="flex items-center gap-1.5">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              className="size-7 text-zinc-400 hover:text-white hover:bg-white/5 cursor-pointer"
+              title="Attach files"
+            >
+              <Paperclip className="size-4" />
+            </Button>
 
-        {/* Right actions: Attachment & Send */}
-        <div className="flex items-center gap-1.5">
-          <button
-            type="button"
-            className="size-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-200 hover:bg-[#252528] transition-colors cursor-pointer"
-            title="Attach file"
-          >
-            <PaperclipIcon className="size-4" />
-            <span className="sr-only">Attach file</span>
-          </button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              className="size-7 text-zinc-400 hover:text-white hover:bg-white/5 cursor-pointer"
+              title="Voice input"
+            >
+              <Mic className="size-4" />
+            </Button>
 
-          <button
-            type="button"
-            onClick={onSend}
-            disabled={!input?.trim()}
-            className={cn(
-              "size-8 rounded-full flex items-center justify-center transition-all",
-              input?.trim()
-                ? "bg-white hover:bg-neutral-200 text-black shadow-sm cursor-pointer active:scale-95"
-                : "bg-[#28282b] text-neutral-500 cursor-not-allowed"
-            )}
-            title="Send message"
-          >
-            <ArrowUpIcon className="size-4 stroke-[2.5]" />
-          </button>
+            <Button
+              type="button"
+              onClick={handleSend}
+              disabled={!hasText || loading}
+              size="icon"
+              className={cn(
+                "size-8 rounded-full transition-all cursor-pointer",
+                hasText && !loading
+                  ? "bg-[#3e5cd6] hover:bg-[#4d6de6] text-white shadow-md active:scale-95"
+                  : "bg-[#282d38] text-zinc-500 disabled:opacity-50 cursor-not-allowed"
+              )}
+              title="Send message"
+            >
+              {loading ? (
+                <Loader2 className="size-4 animate-spin text-white" />
+              ) : (
+                <ArrowUp className="size-4 stroke-[2.5]" />
+              )}
+            </Button>
+          </div>
         </div>
       </div>
-    </div>
-  )
-}
 
-export default ChatInput
+      {/* Disclaimer */}
+      <p className="text-xs text-zinc-500 text-center mt-2 font-normal tracking-tight">
+        AI-generated, for reference only
+      </p>
+    </div>
+  );
+};
+
+export default ChatInput;

@@ -1,3 +1,6 @@
+/**
+ * Google logo SVG icon component.
+ */
 export function GoogleIcon({ className = "w-5 h-5", ...props }) {
   return (
     <svg

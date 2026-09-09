@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import Home from "./pages/Home";
-import getUser from "./features/getUser";
+import fetchData from "./features/fetchData";
 import { setUserData } from "./redux/slices/userSlice";
 
 function App() {
@@ -9,7 +9,7 @@ function App() {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const user = await getUser();
+      const user = await fetchData("/me");
       console.log("Logged in user:", user);
       if (user) {
         dispatch(setUserData(user));

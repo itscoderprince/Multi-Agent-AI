@@ -1,18 +1,26 @@
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { signInWithPopup, signOut } from "firebase/auth";
+import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "@/utils/firebase";
 import api from "@/utils/axios";
 import { setUserData } from "@/redux/slices/userSlice";
 import LoginCard from "@/components/auth/LoginCard";
-import ChatPage from "@/components/chat/ChatPage";
+import Sidebar from "@/components/sidebar/Sidebar";
+import ChatArea from "@/components/chat/Chat";
+import Artifact from "@/components/artifact/Artifact";
 
+/**
+ * Main landing page rendering the centered login card or the chat workspace when authenticated.
+ */
 export default function Home() {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.user.userData);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  /**
+   * Authenticates with Firebase via Google popup, then exchanges the token with backend gateway.
+   */
   const handleGoogleLogin = async () => {
     try {
       setLoading(true);
@@ -24,7 +32,8 @@ export default function Home() {
 
       // 2. Authenticate with Backend via Gateway
       const response = await api.post("/auth/login", { token });
-      const userData = response.data?.data || response.data?.user || response.data;
+      const userData =
+        response.data?.data || response.data?.user || response.data;
       dispatch(setUserData(userData));
     } catch (err) {
       console.error("Login error:", err);
@@ -38,6 +47,9 @@ export default function Home() {
     }
   };
 
+  /**
+   * Dispatches mock demo credentials to explore the application without signing in.
+   */
   const handleDemoLogin = () => {
     dispatch(
       setUserData({
@@ -45,26 +57,18 @@ export default function Home() {
         name: "Demo User",
         email: "developer@multiagent.ai",
         avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=DemoUser",
-      })
+      }),
     );
   };
 
-  const handleLogout = async () => {
-    try {
-      // 1. Clear backend session in Redis & Cookie
-      await api.post("/auth/logout").catch(() => {});
-
-      // 2. Sign out of Firebase client
-      await signOut(auth).catch(() => {});
-      dispatch(setUserData(null));
-    } catch (err) {
-      console.error("Logout error:", err);
-      dispatch(setUserData(null));
-    }
-  };
-
   if (user) {
-    return <ChatPage user={user} onLogout={handleLogout} />;
+    return (
+      <main className="h-screen w-screen flex bg-[#0d0f14] text-white overflow-hidden">
+        <Sidebar />
+        <ChatArea />
+        <Artifact />
+      </main>
+    );
   }
 
   return (
