@@ -1,16 +1,17 @@
-import { MessageCirclePlus, PanelLeftIcon } from "lucide-react";
+import { MessageCirclePlus, PanelLeftIcon, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import fetchData from "@/features/fetchData";
-import createChat from "@/features/createChat";
 import NavUser from "./NavUser";
 import RecentChatsDropdown from "./RecentChatsDropdown";
+import ChatItem from "./ChatItem";
 import {
   setChatData,
-  addChatData,
   setSelectChat,
 } from "@/redux/slices/chatSlice";
+import { clearMessageData } from "@/redux/slices/messageSlice";
+import { DEMO_CHATS } from "@/data/demoChats";
 
 const Sidebar = () => {
   const dispatch = useDispatch();
@@ -19,23 +20,38 @@ const Sidebar = () => {
   const selectedChat = useSelector((state) => state.chats.selectedChat);
   const user = useSelector((state) => state.user.userData);
 
-  // Fetch user chats on mount and sync to Redux
+  // Fetch user chats on mount and sync to Redux, fallback to DEMO_CHATS
   useEffect(() => {
     const fetchChats = async () => {
-      const data = await fetchData("/chat");
-      if (data) dispatch(setChatData(data));
+      try {
+        const data = await fetchData("/chat");
+        // Filter out any legacy blank dummy chats titled "New Chat"
+        const userChats = Array.isArray(data)
+          ? data.filter((chat) => chat.title && chat.title.trim() !== "New Chat")
+          : [];
+
+        if (userChats.length > 0) {
+          dispatch(setChatData([...userChats, ...DEMO_CHATS]));
+        } else {
+          dispatch(setChatData(DEMO_CHATS));
+        }
+      } catch (err) {
+        console.error("Failed to fetch chats:", err);
+        dispatch(setChatData(DEMO_CHATS));
+      }
     };
 
     fetchChats();
   }, [dispatch]);
 
-  const handleCreateChat = async () => {
-    const newChat = await createChat();
-    if (newChat) {
-      dispatch(addChatData(newChat));
-      dispatch(setSelectChat(newChat));
-    }
+  // Professional AI pattern: reset to fresh welcome state without creating empty DB rows
+  const handleCreateChat = () => {
+    dispatch(setSelectChat(null));
+    dispatch(clearMessageData());
   };
+
+  const userChats = chats?.filter((c) => !c.isDemo) || [];
+  const demoChats = chats?.filter((c) => c.isDemo) || [];
 
   return (
     <aside
@@ -83,11 +99,11 @@ const Sidebar = () => {
         </Button>
       </div>
 
-      <div className={`pt-3 pb-1 ${collapsed ? "px-2" : "px-3.5"}`}>
+      <div className={`pt-3 pb-2 ${collapsed ? "px-2" : "px-3.5"}`}>
         {!collapsed ? (
           <Button
             onClick={handleCreateChat}
-            className="w-full h-9 rounded-full justify-center gap-2 font-medium shadow-sm transition-transform active:scale-[0.98] cursor-pointer"
+            className="w-full h-9 rounded-full justify-center gap-2 font-medium shadow-sm transition-transform active:scale-[0.98] cursor-pointer bg-white text-zinc-900 hover:bg-zinc-200"
           >
             <MessageCirclePlus className="size-4" />
             <span>New Chat</span>
@@ -114,29 +130,44 @@ const Sidebar = () => {
           />
         </div>
       ) : (
-        <div className="flex-1 overflow-y-auto px-2 py-2 text-sm">
-          {!chats?.length ? (
-            <p className="text-xs text-zinc-500 text-center py-3">
-              No recent conversations
-            </p>
-          ) : (
-            chats.map((chat) => {
-              const isSelected = selectedChat?._id === chat._id;
-              return (
-                <button
-                  key={chat._id}
-                  onClick={() => dispatch(setSelectChat(chat))}
-                  title={chat.title || "New Chat"}
-                  className={`w-full text-left truncate px-2.5 py-1.5 rounded-lg text-sm transition-colors cursor-pointer ${
-                    isSelected
-                      ? "bg-white/10 text-white font-medium"
-                      : "text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
-                  }`}
-                >
-                  {chat.title || "New Chat"}
-                </button>
-              );
-            })
+        <div className="flex-1 overflow-y-auto px-2 py-2 text-sm space-y-4">
+          {/* User's Recent Chats */}
+          {userChats.length > 0 && (
+            <div>
+              <div className="px-2 pb-1.5 text-[11px] font-semibold tracking-wider text-zinc-500 uppercase">
+                Recent
+              </div>
+              <div className="space-y-0.5">
+                {userChats.map((chat) => (
+                  <ChatItem
+                    key={chat._id}
+                    chat={chat}
+                    isSelected={selectedChat?._id === chat._id}
+                    onSelect={() => dispatch(setSelectChat(chat))}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Curated Demo Chats */}
+          {demoChats.length > 0 && (
+            <div>
+              <div className="px-2 pb-1.5 text-[11px] font-semibold tracking-wider text-zinc-500 uppercase flex items-center gap-1.5">
+                <Sparkles className="size-3 text-emerald-400" />
+                <span>Demo Chats</span>
+              </div>
+              <div className="space-y-0.5">
+                {demoChats.map((chat) => (
+                  <ChatItem
+                    key={chat._id}
+                    chat={chat}
+                    isSelected={selectedChat?._id === chat._id}
+                    onSelect={() => dispatch(setSelectChat(chat))}
+                  />
+                ))}
+              </div>
+            </div>
           )}
         </div>
       )}

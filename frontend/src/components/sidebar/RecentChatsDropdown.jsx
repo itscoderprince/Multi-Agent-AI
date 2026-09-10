@@ -1,4 +1,4 @@
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, Trash2 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   DropdownMenu,
@@ -7,7 +7,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { setSelectChat } from "@/redux/slices/chatSlice";
+import { setSelectChat, deleteChatData } from "@/redux/slices/chatSlice";
+import { clearMessageData } from "@/redux/slices/messageSlice";
+import deleteChat from "@/features/deleteChat";
 
 /**
  * Dropdown menu for recent chats displayed when the sidebar is collapsed.
@@ -25,6 +27,17 @@ const RecentChatsDropdown = ({ chats, selectedChat, onSelectChat }) => {
       onSelectChat(chat);
     } else {
       dispatch(setSelectChat(chat));
+    }
+  };
+
+  const handleDelete = async (e, chatId) => {
+    e.stopPropagation();
+    const success = await deleteChat(chatId);
+    if (success) {
+      dispatch(deleteChatData(chatId));
+      if (currentChat?._id === chatId) {
+        dispatch(clearMessageData());
+      }
     }
   };
 
@@ -62,16 +75,27 @@ const RecentChatsDropdown = ({ chats, selectedChat, onSelectChat }) => {
                     key={chat._id}
                     onClick={() => handleSelect(chat)}
                     title={chat.title || "New Chat"}
-                    className={`w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-sm text-left transition-colors cursor-pointer outline-none ${
+                    className={`group w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg text-sm text-left transition-colors cursor-pointer outline-none ${
                       isSelected
                         ? "bg-white/10 text-white font-medium"
                         : "text-zinc-300 hover:bg-white/5 hover:text-white focus:bg-white/10 focus:text-white"
                     }`}
                   >
-                    <MessageCircle className="size-3.5 shrink-0 text-zinc-500" />
-                    <span className="truncate flex-1 min-w-0">
-                      {chat.title || "New Chat"}
-                    </span>
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                      <MessageCircle className="size-3.5 shrink-0 text-zinc-500" />
+                      <span className="truncate flex-1 min-w-0">
+                        {chat.title || "New Chat"}
+                      </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={(e) => handleDelete(e, chat._id)}
+                      className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-rose-500/20 text-zinc-400 hover:text-rose-400 transition-opacity cursor-pointer"
+                      title="Delete chat"
+                    >
+                      <Trash2 className="size-3.5" />
+                    </button>
                   </DropdownMenuItem>
                 );
               })

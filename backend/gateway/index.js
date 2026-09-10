@@ -34,9 +34,9 @@ app.use(
   }),
 );
 
-// Proxy to Chat Service (protected by checkAuth: injects x-user-id and x-user-email headers)
+// Proxy to Chat Service (supports /chat and /chats, protected by checkAuth)
 app.use(
-  "/chat",
+  ["/chat", "/chats"],
   checkAuth,
   proxy(process.env.CHAT_SERVICE || "http://localhost:3000", {
     parseReqBody: false,

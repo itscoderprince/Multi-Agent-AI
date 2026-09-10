@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import {
   Empty,
   EmptyHeader,
@@ -23,16 +23,12 @@ import {
 } from "@/components/ui/message-scroller";
 import { Button } from "@/components/ui/button";
 import {
-  MessageSquare,
-  MessageCirclePlus,
   Copy,
   Check,
   Code2,
   Lightbulb,
   Compass,
 } from "lucide-react";
-import createChat from "@/features/createChat";
-import { addChatData, setSelectChat } from "@/redux/slices/chatSlice";
 
 const SUGGESTED_PROMPTS = [
   {
@@ -52,9 +48,7 @@ const SUGGESTED_PROMPTS = [
   },
 ];
 
-const ChatMsg = ({ onSelectPrompt }) => {
-  const dispatch = useDispatch();
-  const selectedChat = useSelector((state) => state.chats.selectedChat);
+const ChatMsg = ({ onSelectPrompt, isGenerating }) => {
   const messages = useSelector((state) => state.messages.messageData);
   const [copiedId, setCopiedId] = useState(null);
 
@@ -65,53 +59,12 @@ const ChatMsg = ({ onSelectPrompt }) => {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const handleNewChat = async () => {
-    const newChat = await createChat();
-    if (newChat) {
-      dispatch(addChatData(newChat));
-      dispatch(setSelectChat(newChat));
-    }
-  };
-
-  // Case 1: No chat conversation selected
-  if (!selectedChat) {
-    return (
-      <div className="flex-1 flex items-center justify-center p-6 pb-32 min-h-0">
-        <Empty className="max-w-md">
-          <EmptyHeader>
-            <EmptyMedia
-              variant="icon"
-              className="size-14 rounded-2xl bg-white/5 border border-white/10 text-emerald-400 mx-auto"
-            >
-              <MessageSquare className="size-6" />
-            </EmptyMedia>
-            <EmptyTitle className="text-lg font-semibold text-slate-100">
-              No conversation selected
-            </EmptyTitle>
-            <EmptyDescription className="text-sm text-zinc-400">
-              Select an existing chat from the sidebar or start a fresh session to explore with SarthiAi.
-            </EmptyDescription>
-          </EmptyHeader>
-          <EmptyContent className="mt-2">
-            <Button
-              onClick={handleNewChat}
-              className="rounded-full px-5 py-2 text-sm font-medium gap-2 cursor-pointer shadow-lg shadow-emerald-500/10"
-            >
-              <MessageCirclePlus className="size-4" />
-              <span>Start New Chat</span>
-            </Button>
-          </EmptyContent>
-        </Empty>
-      </div>
-    );
-  }
-
-  // Case 2: Chat selected, but no messages yet (Fresh conversation)
+  // Welcome State: If no messages in the active thread (or fresh session)
   if (!messages || messages.length === 0) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-6 pb-32 min-h-0 overflow-y-auto">
-        <Empty className="max-w-xl">
-          <EmptyHeader className="mb-4">
+        <Empty className="max-w-2xl">
+          <EmptyHeader className="mb-4 text-center">
             <EmptyMedia className="mx-auto mb-3">
               <div className="size-14 rounded-2xl bg-gradient-to-tr from-emerald-500/20 via-sky-500/20 to-indigo-500/20 border border-white/10 flex items-center justify-center shadow-lg shadow-emerald-500/5">
                 <img
@@ -124,12 +77,12 @@ const ChatMsg = ({ onSelectPrompt }) => {
             <EmptyTitle className="text-xl font-semibold text-slate-100">
               How can SarthiAi help you today?
             </EmptyTitle>
-            <EmptyDescription className="text-sm text-zinc-400">
-              Your autonomous multi-agent AI workspace. Ask questions, build components, or solve complex problems.
+            <EmptyDescription className="text-sm text-zinc-400 max-w-md mx-auto">
+              Your autonomous multi-agent AI workspace. Ask questions, explore code, or solve complex problems.
             </EmptyDescription>
           </EmptyHeader>
 
-          <EmptyContent className="max-w-xl w-full">
+          <EmptyContent className="max-w-2xl w-full">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full mt-2">
               {SUGGESTED_PROMPTS.map((item) => {
                 const Icon = item.icon;
@@ -163,7 +116,7 @@ const ChatMsg = ({ onSelectPrompt }) => {
       <MessageScrollerProvider>
         <MessageScroller className="flex-1 w-full h-full">
           <MessageScrollerViewport className="px-0 py-4 h-full">
-            <MessageScrollerContent className="max-w-3xl mx-auto w-full px-4 space-y-4 pb-52">
+            <MessageScrollerContent className="max-w-3xl mx-auto w-full px-4 space-y-4 pb-32">
               {messages.map((msg, index) => {
                 const isUser = msg.role === "user";
                 const isCopied = copiedId === (msg._id || index);
@@ -211,9 +164,20 @@ const ChatMsg = ({ onSelectPrompt }) => {
                   </MessageScrollerItem>
                 );
               })}
+
+              {/* Clean in-UI typing/thinking indicator when agent is generating */}
+              {isGenerating && (
+                <MessageScrollerItem>
+                  <div className="flex items-center gap-1.5 py-2 px-1 text-zinc-400">
+                    <span className="size-2 rounded-full bg-zinc-400 animate-bounce [animation-delay:-0.3s]" />
+                    <span className="size-2 rounded-full bg-zinc-400 animate-bounce [animation-delay:-0.15s]" />
+                    <span className="size-2 rounded-full bg-zinc-400 animate-bounce" />
+                  </div>
+                </MessageScrollerItem>
+              )}
             </MessageScrollerContent>
           </MessageScrollerViewport>
-          <MessageScrollerButton className="bottom-36 z-30 shadow-lg bg-[#1e2025] hover:bg-[#282d38] border border-white/10 text-white rounded-full size-8" />
+          <MessageScrollerButton className="bottom-28 z-30 shadow-lg bg-[#1e2025] hover:bg-[#282d38] border border-white/10 text-white rounded-full size-8" />
         </MessageScroller>
       </MessageScrollerProvider>
     </div>

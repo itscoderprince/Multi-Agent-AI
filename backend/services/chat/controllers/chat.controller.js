@@ -49,6 +49,29 @@ export const getChats = asyncHandler(async (req, res) => {
 });
 
 /**
+ * Retrieves a single conversation by ID
+ */
+export const getChatById = asyncHandler(async (req, res) => {
+  const { chatId } = req.params;
+  const userId = req.headers["x-user-id"];
+
+  if (!chatId) {
+    throw new AppError("Chat ID is required", 400);
+  }
+
+  const chat = await Chat.findById(chatId);
+  if (!chat) {
+    throw new AppError("Chat not found", 404);
+  }
+
+  if (userId && chat.userId.toString() !== userId.toString()) {
+    throw new AppError("Forbidden: You cannot access this conversation", 403);
+  }
+
+  return sendSuccess(res, chat, "Conversation retrieved successfully 💬");
+});
+
+/**
  * Saves a message (user or assistant) to a chat and updates the chat's lastMessage
  */
 export const saveChat = asyncHandler(async (req, res) => {

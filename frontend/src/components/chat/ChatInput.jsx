@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { ArrowUp, Globe, Paperclip, Mic, Loader2 } from "lucide-react";
+import { ArrowUp, Globe, Paperclip, Mic } from "lucide-react";
 import api from "@/utils/axios";
 import createChat from "@/features/createChat";
 import { addChatData, setSelectChat } from "@/redux/slices/chatSlice";
@@ -12,11 +12,14 @@ import { cn } from "cn";
 /**
  * Modern AI Chat input component styled after DeepSeek / ChatGPT.
  */
-const ChatInput = ({ value = "", onChange }) => {
+const ChatInput = ({ value = "", onChange, isGenerating, setIsGenerating }) => {
   const dispatch = useDispatch();
   const selectedChat = useSelector((state) => state.chats.selectedChat);
-  const [loading, setLoading] = useState(false);
+  const [localLoading, setLocalLoading] = useState(false);
   const [webSearch, setWebSearch] = useState(true);
+
+  const loading = isGenerating ?? localLoading;
+  const setLoading = setIsGenerating ?? setLocalLoading;
 
   const handleSend = async () => {
     const trimmed = value.trim();
@@ -26,23 +29,45 @@ const ChatInput = ({ value = "", onChange }) => {
       setLoading(true);
 
       let activeChat = selectedChat;
-      if (!activeChat?._id) {
+      if (!activeChat?._id || activeChat.isDemo) {
         activeChat = await createChat(trimmed.slice(0, 30));
         if (!activeChat) return;
         dispatch(addChatData(activeChat));
         dispatch(setSelectChat(activeChat));
       }
 
-      const { data } = await api.post(`/chat/${activeChat._id}/messages`, {
-        content: trimmed,
-        role: "user",
+      // Optimistically display user prompt in chat
+      dispatch(
+        addMessageData({
+          _id: `user-${Date.now()}`,
+          role: "user",
+          content: trimmed,
+        })
+      );
+      onChange?.("");
+
+      // Get response from agent service
+      const { data } = await api.post("/agent", {
+        prompt: trimmed,
+        chatId: activeChat._id,
       });
 
-      const savedMessage = data?.data || data;
-      if (savedMessage) dispatch(addMessageData(savedMessage));
-      onChange?.("");
+      // Display agent response in chat
+      const agentMessage = data?.data?.message || {
+        _id: `agent-${Date.now()}`,
+        role: "assistant",
+        content: data?.data?.aiResponse || "No response received.",
+      };
+      dispatch(addMessageData(agentMessage));
     } catch (err) {
-      console.error("Failed to send message:", err);
+      console.error("Failed to get agent response:", err);
+      dispatch(
+        addMessageData({
+          _id: `err-${Date.now()}`,
+          role: "assistant",
+          content: "Sorry, I encountered an error connecting to the agent. Please try again.",
+        })
+      );
     } finally {
       setLoading(false);
     }
@@ -51,7 +76,9 @@ const ChatInput = ({ value = "", onChange }) => {
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleSend();
+      if (!loading) {
+        handleSend();
+      }
     }
   };
 
@@ -67,8 +94,7 @@ const ChatInput = ({ value = "", onChange }) => {
           onKeyDown={handleKeyDown}
           placeholder="Message SarthiAi"
           rows={1}
-          disabled={loading}
-          className="no-scrollbar scrollbar-none [&::-webkit-scrollbar]:hidden min-h-11 max-h-36 resize-none rounded-none border-0 border-transparent bg-transparent dark:bg-transparent px-1 py-1 text-[15px] text-slate-100 placeholder:text-zinc-500 shadow-none outline-none ring-0 focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-transparent focus-visible:border-transparent leading-relaxed"
+          className="no-scrollbar scrollbar-none [&::-webkit-scrollbar]:hidden min-h-11 max-h-36 resize-none rounded-none border-0! border-none! border-transparent! bg-transparent! dark:bg-transparent! disabled:bg-transparent! dark:disabled:bg-transparent! disabled:border-0! disabled:border-transparent! shadow-none! outline-none! ring-0! focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-transparent focus-visible:border-transparent px-1 py-1 text-[15px] text-slate-100 placeholder:text-zinc-500 leading-relaxed"
         />
 
         {/* Bottom Controls Bar */}
@@ -83,7 +109,7 @@ const ChatInput = ({ value = "", onChange }) => {
               "h-8 rounded-full px-3 text-xs gap-1.5 font-medium transition-colors cursor-pointer",
               webSearch
                 ? "bg-[#18263f] border-[#294a82] text-[#4d8eff] hover:bg-[#1f3254] hover:text-[#4d8eff]"
-                : "bg-white/5 border-white/10 text-zinc-300 hover:bg-white/10 hover:text-white"
+                : "bg-white/5 border-white/10 text-zinc-300 hover:bg-white/10 hover:text-white",
             )}
           >
             <Globe className="size-3.5" />
@@ -121,15 +147,11 @@ const ChatInput = ({ value = "", onChange }) => {
                 "size-8 rounded-full transition-all cursor-pointer",
                 hasText && !loading
                   ? "bg-[#3e5cd6] hover:bg-[#4d6de6] text-white shadow-md active:scale-95"
-                  : "bg-[#282d38] text-zinc-500 disabled:opacity-50 cursor-not-allowed"
+                  : "bg-[#282d38] text-zinc-500 disabled:opacity-50 cursor-not-allowed",
               )}
               title="Send message"
             >
-              {loading ? (
-                <Loader2 className="size-4 animate-spin text-white" />
-              ) : (
-                <ArrowUp className="size-4 stroke-[2.5]" />
-              )}
+              <ArrowUp className="size-4 stroke-[2.5]" />
             </Button>
           </div>
         </div>

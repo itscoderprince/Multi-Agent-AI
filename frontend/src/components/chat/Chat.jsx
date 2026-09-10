@@ -13,6 +13,7 @@ const Chat = () => {
   const dispatch = useDispatch();
   const selectedChat = useSelector((state) => state.chats.selectedChat);
   const [selectedPrompt, setSelectedPrompt] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
 
   // Fetch active conversation messages whenever selectedChat changes
   useEffect(() => {
@@ -22,25 +23,39 @@ const Chat = () => {
         return;
       }
 
+      // If it's a demo chat, load curated demo messages directly
+      if (selectedChat.isDemo && selectedChat.messages) {
+        dispatch(setMessageData(selectedChat.messages));
+        return;
+      }
+
       const data = await fetchData(`/chat/${selectedChat._id}/messages`);
-      if (data) {
+      if (data && data.length > 0) {
         dispatch(setMessageData(data));
       }
     };
 
     fetchMessages();
-  }, [selectedChat?._id, dispatch]);
+  }, [selectedChat?._id, selectedChat?.isDemo, dispatch]);
 
   return (
     <section className="flex-1 relative flex flex-col min-w-0 h-screen overflow-hidden bg-[#0d0f14]">
       <ChatNav />
       <div className="flex-1 relative min-h-0 w-full h-full overflow-hidden flex flex-col">
-        <ChatMsg onSelectPrompt={(prompt) => setSelectedPrompt(prompt)} />
+        <ChatMsg
+          onSelectPrompt={(prompt) => setSelectedPrompt(prompt)}
+          isGenerating={isGenerating}
+        />
 
         {/* Fixed Input Bar with Transparent Backdrop Gradient */}
-        <div className="absolute bottom-0 left-0 right-2 pointer-events-none z-20 bg-gradient-to-t from-[#0d0f14] via-[#0d0f14]/85 via-50% to-transparent pt-10 pb-3">
+        <div className="absolute bottom-0 left-0 right-2 pointer-events-none z-20 bg-linear-to-t from-[#0d0f14] via-[#0d0f14]/85 via-50% to-transparent pt-4 pb-3">
           <div className="pointer-events-auto">
-            <ChatInput value={selectedPrompt} onChange={setSelectedPrompt} />
+            <ChatInput
+              value={selectedPrompt}
+              onChange={setSelectedPrompt}
+              isGenerating={isGenerating}
+              setIsGenerating={setIsGenerating}
+            />
           </div>
         </div>
       </div>

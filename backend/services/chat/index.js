@@ -27,7 +27,9 @@ app.get("/health", (req, res) => {
   });
 });
 
-// Mount Chat routes
+// Mount Chat routes (supports '/', '/chat', and '/chats')
+app.use("/chat", chatRoutes);
+app.use("/chats", chatRoutes);
 app.use("/", chatRoutes);
 
 // 404 & Global Error Handling
