@@ -29,8 +29,8 @@ export function ChatMsg({ onSelectPrompt, isGenerating }) {
     <div className="flex-1 relative min-h-0 flex flex-col w-full h-full overflow-hidden">
       <MessageScrollerProvider>
         <MessageScroller className="flex-1 w-full h-full">
-          <MessageScrollerViewport className="px-0 py-4 h-full">
-            <MessageScrollerContent className="max-w-3xl mx-auto w-full px-4 gap-1 pb-36">
+          <MessageScrollerViewport className="px-0 py-2 h-full">
+            <MessageScrollerContent className="max-w-3xl mx-auto w-full px-4 gap-0.5 pb-28">
               {messages.map((msg, index) => {
                 const isUser = msg.role === "user";
                 const isNewTurn = isUser && index > 0;
@@ -38,12 +38,12 @@ export function ChatMsg({ onSelectPrompt, isGenerating }) {
                 return (
                   <MessageScrollerItem
                     key={msg._id || index}
-                    className={isNewTurn ? "mt-5" : ""}
+                    className={isNewTurn ? "mt-3.5" : ""}
                   >
                     {isUser ? (
                       <UserMessage content={msg.content} />
                     ) : (
-                      <AssistantMessage content={msg.content} />
+                      <AssistantMessage content={msg.content} images={msg.images} />
                     )}
                   </MessageScrollerItem>
                 );

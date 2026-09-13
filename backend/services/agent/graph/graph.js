@@ -28,6 +28,8 @@ workflow.addEdge(START, "router");
 workflow.addConditionalEdges(
   "router",
   (state) => {
+    const target = state.agent || "chat";
+    console.log(`[Graph 🚀]: Dispatching execution to specialist node -> "${target}"`);
     switch (state.agent) {
       case "chat":
         return "chat";

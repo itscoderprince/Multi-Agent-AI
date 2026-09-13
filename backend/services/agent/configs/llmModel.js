@@ -12,7 +12,7 @@ export const groq = new ChatGroq({
 });
 
 export const gemini = new ChatGoogleGenerativeAI({
-  model: "gemini-flash-latest",
+  model: "gemini-3.6-flash",
   apiKey: process.env.GOOGLE_API_KEY,
   temperature: 0,
   maxRetries: 2,
@@ -28,9 +28,9 @@ export const getModel = (agent) => {
     case "coding":
     case "pdf":
     case "vision":
-      return gemini; // Gemini excels at large context, multimodal vision, and deep reasoning
-    case "chat":
     case "search":
+      return gemini; // Gemini excels at large context, search synthesis, multimodal vision, and deep reasoning
+    case "chat":
     case "ppt":
     default:
       return groq; // Groq excels at ultra-low latency response generation

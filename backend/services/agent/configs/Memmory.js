@@ -5,7 +5,11 @@ const normalize = (msg) => {
   if (!msg) return null;
   const role =
     msg.role === "human" ? "user" : msg.role === "ai" ? "assistant" : msg.role || "user";
-  return { role, content: msg.content || "" };
+  return {
+    role,
+    content: msg.content || "",
+    ...(msg.images?.length ? { images: msg.images } : {}),
+  };
 };
 
 export const getMemory = async (chatId) => {

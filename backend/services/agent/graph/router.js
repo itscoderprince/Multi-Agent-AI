@@ -38,7 +38,16 @@ const VALID_AGENTS = new Set(["chat", "search", "coding", "pdf", "ppt", "vision"
  * @returns {Promise<{ agent: string }>} State update containing the selected agent
  */
 export const router = async (state) => {
-  const { prompt } = state;
+  const { prompt, agent: requestedAgent } = state;
+
+  // If a valid agent was explicitly requested (not "auto"), bypass LLM classification
+  if (requestedAgent && requestedAgent !== "auto" && VALID_AGENTS.has(requestedAgent)) {
+    console.log(`[Router 🎯]: Manual agent explicitly selected -> "${requestedAgent}"`);
+    return { agent: requestedAgent };
+  }
+
+  const preview = prompt.length > 60 ? prompt.slice(0, 60) + "..." : prompt;
+  console.log(`[Router 🤖]: Auto-routing prompt -> "${preview}"`);
 
   try {
     const response = await groq.invoke([
@@ -54,9 +63,11 @@ export const router = async (state) => {
 
     const agent = VALID_AGENTS.has(detectedAgent) ? detectedAgent : "chat";
 
+    console.log(`[Router 🔀]: Auto-switched to agent -> "${agent}" (raw model output: "${response.content.trim()}")`);
+
     return { agent };
   } catch (error) {
-    console.error("[Router]: Error during routing, falling back to chat:", error.message);
+    console.error("[Router ⚠️]: Error during routing, falling back to chat:", error.message);
     return { agent: "chat" };
   }
 };

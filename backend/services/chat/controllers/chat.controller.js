@@ -75,7 +75,7 @@ export const getChatById = asyncHandler(async (req, res) => {
  * Saves a message (user or assistant) to a chat and updates the chat's lastMessage
  */
 export const saveChat = asyncHandler(async (req, res) => {
-  const { chat, chatId, role = "user", content } = req.body;
+  const { chat, chatId, role = "user", content, images = [] } = req.body;
   const targetChatId = chatId || chat || req.params.chatId;
 
   if (!targetChatId) {
@@ -101,6 +101,7 @@ export const saveChat = asyncHandler(async (req, res) => {
     senderId,
     role,
     content: content.trim(),
+    images: Array.isArray(images) ? images : [],
   });
 
   // Update lastMessage on Chat

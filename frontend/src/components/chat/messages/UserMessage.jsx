@@ -25,7 +25,7 @@ export function UserMessage({ content }) {
     <div className="flex justify-end w-full group/user">
       <div className="flex flex-col items-end max-w-[85%] md:max-w-[75%]">
         {/* User Prompt Bubble */}
-        <div className="w-full rounded-2xl bg-[#18366d] border border-blue-400/20 px-4 py-2.5 text-[15px] text-slate-100 whitespace-pre-wrap wrap-break-word leading-relaxed shadow-sm selection:bg-blue-400/30">
+        <div className="w-fit rounded-2xl bg-[#18366d] border border-blue-400/20 px-3.5 py-1.5 text-[14px] text-slate-100 whitespace-pre-wrap break-words leading-relaxed shadow-sm selection:bg-blue-400/30">
           {content}
         </div>
 
@@ -38,13 +38,13 @@ export function UserMessage({ content }) {
           <Tooltip>
             <TooltipTrigger
               onClick={handleCopy}
-              className="flex items-center justify-center size-5.5 rounded-md text-zinc-400 hover:text-white hover:bg-white/10 cursor-pointer transition-colors outline-none"
+              className="flex items-center justify-center size-5 rounded-md text-zinc-400 hover:text-white hover:bg-white/10 cursor-pointer transition-colors outline-none"
               aria-label={copied ? "Copied" : "Copy prompt"}
             >
               {copied ? (
-                <CheckCheck className="size-3.5 text-emerald-400" />
+                <CheckCheck className="size-3 text-emerald-400" />
               ) : (
-                <Copy className="size-3.5" />
+                <Copy className="size-3" />
               )}
             </TooltipTrigger>
             <TooltipContent side="bottom" sideOffset={4}>

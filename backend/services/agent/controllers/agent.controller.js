@@ -13,7 +13,7 @@ import {
  * both the user message and the AI response in the Chat Service & Redis memory.
  */
 export const agent = asyncHandler(async (req, res) => {
-  const { prompt, chatId, conversationId } = req.body;
+  const { prompt, chatId, conversationId, agent: requestedAgent } = req.body;
   const targetChatId = chatId || conversationId;
 
   if (!prompt || !prompt.trim()) {
@@ -52,6 +52,7 @@ export const agent = asyncHandler(async (req, res) => {
   const graphResult = await graph.invoke({
     prompt: prompt.trim(),
     chatId: targetChatId,
+    ...(requestedAgent && requestedAgent !== "auto" ? { agent: requestedAgent } : {}),
   });
 
   // 3. Persist Assistant Response to Chat Service & Redis Memory
@@ -63,6 +64,7 @@ export const agent = asyncHandler(async (req, res) => {
         {
           role: "assistant",
           content: graphResult.aiResponse,
+          images: graphResult.images || [],
         },
         {
           headers: {
@@ -81,6 +83,7 @@ export const agent = asyncHandler(async (req, res) => {
     await addMessage(targetChatId, {
       role: "assistant",
       content: graphResult.aiResponse,
+      images: graphResult.images || [],
     });
   }
 
@@ -93,6 +96,7 @@ export const agent = asyncHandler(async (req, res) => {
       aiResponse: graphResult.aiResponse,
       chatId: targetChatId || null,
       message: savedMessage,
+      images: graphResult.images || [],
     },
     "Agent response generated successfully 🤖🚀",
     200

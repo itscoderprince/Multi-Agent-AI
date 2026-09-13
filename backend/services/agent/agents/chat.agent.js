@@ -18,7 +18,8 @@ Formatting Guidelines:
 - Keep paragraphs short (2-4 sentences max) and easily scannable.
 - Never write headings and content on the same line.
 - Never generate large, dense walls of unformatted text.
-- Use Markdown tables for comparative matrices, specifications, or structured data when appropriate.`;
+- Use Markdown tables for comparative matrices, specifications, or structured data when appropriate.
+- When synthesizing web search findings, cite sources naturally using Markdown links [Source Title](url) or numbered references.`;
 
 /**
  * Chat Agent Node
@@ -30,17 +31,41 @@ Formatting Guidelines:
  * @param {string} [state.aiResponse] - Context or search findings from prior node
  * @returns {Promise<{ aiResponse: string }>} State update with Sarathi AI response
  */
-export const chatAgent = async (state) => {
-  const { prompt, aiResponse, chatId } = state;
-  const llm = await getModel("chat");
+/**
+ * Normalizes LLM response content to a plain string.
+ * Gemini can return an array of content parts; Groq returns a string.
+ */
+const extractText = (content) => {
+  if (typeof content === "string") return content;
+  if (Array.isArray(content)) {
+    return content
+      .map((part) => (typeof part === "string" ? part : part?.text ?? ""))
+      .join("");
+  }
+  return String(content ?? "");
+};
 
-  const history = chatId ? await getMemory(chatId) : [];
+export const chatAgent = async (state) => {
+  const { prompt, aiResponse, searchResults, chatId } = state;
+  const targetAgent = searchResults || state.agent === "search" ? "search" : "chat";
+  const llm = getModel(targetAgent);
+
+  const rawHistory = chatId ? await getMemory(chatId) : [];
+  // Keep only the most recent 6 messages to stay well within token thresholds
+  const history = (rawHistory || []).slice(-6);
+
+  // 1. Incorporate web search findings directly into system prompt (MUST be the first and only system message)
+  const searchData = searchResults || aiResponse;
+  let systemContent = SYSTEM_PROMPT;
+  if (searchData) {
+    systemContent += `\n\n--- SEARCH FINDINGS / WEB CONTEXT ---\n${searchData}\n\nSynthesize the above web search findings directly into a complete, clear, and comprehensive answer for the user adhering to all formatting rules.`;
+  }
 
   const messages = [
-    { role: "system", content: SYSTEM_PROMPT },
+    { role: "system", content: systemContent },
   ];
 
-  // 1. Inject previous conversation history
+  // 2. Inject previous conversation history
   if (history?.length) {
     history.forEach((msg) => {
       if (msg.role && msg.content) {
@@ -52,7 +77,7 @@ export const chatAgent = async (state) => {
     });
   }
 
-  // 2. Append current prompt if not already in history
+  // 3. Append current user prompt if not already in history
   const lastMsg = history[history.length - 1];
   const isPromptInHistory =
     lastMsg &&
@@ -66,26 +91,36 @@ export const chatAgent = async (state) => {
     });
   }
 
-  // 3. Inject web search context if provided
-  if (aiResponse) {
-    messages.push({
-      role: "system",
-      content: `Context / Search findings from web:\n${aiResponse}\n\nPlease synthesize this context into a comprehensive, accurate, and direct response for the user adhering to all formatting rules.`,
-    });
-  }
+  const tryInvoke = async (model, label) => {
+    try {
+      const response = await model.invoke(messages);
+      const text = extractText(response.content);
+      if (!text.trim()) {
+        // Model returned empty — likely safety-blocked
+        console.warn(`[chatAgent][${label}]: Empty response (possible safety block). Skipping.`);
+        return null;
+      }
+      return text;
+    } catch (err) {
+      console.warn(`[chatAgent][${label}]: Error — ${err.message}`);
+      return null;
+    }
+  };
 
-  try {
-    const response = await llm.invoke(messages);
+  // Primary model
+  const primary = await tryInvoke(llm, targetAgent === "search" ? "gemini" : "groq");
+  if (primary) return { aiResponse: primary };
 
-    return {
-      aiResponse: response.content,
-    };
-  } catch (error) {
-    console.error("[chatAgent]: Error invoking LLM:", error.message);
-    return {
-      aiResponse: "I encountered an issue processing your request. Please try again.",
-    };
-  }
+  // Fallback: if primary was Gemini, try Groq (and vice versa)
+  const fallbackLlm = getModel(targetAgent === "search" ? "chat" : "search");
+  const fallback = await tryInvoke(fallbackLlm, targetAgent === "search" ? "groq-fallback" : "gemini-fallback");
+  if (fallback) return { aiResponse: fallback };
+
+  // Last resort
+  console.error("[chatAgent]: All models failed or returned empty responses.");
+  return {
+    aiResponse: "I'm sorry, I was unable to generate a response. This may be due to content filtering. Please try rephrasing your question.",
+  };
 };
 
 export default chatAgent;
