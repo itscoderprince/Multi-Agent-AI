@@ -29,7 +29,7 @@ const ChatInput = ({ value = "", onChange, isGenerating, setIsGenerating }) => {
       setLoading(true);
 
       let activeChat = selectedChat;
-      if (!activeChat?._id || activeChat.isDemo) {
+      if (!activeChat?._id) {
         activeChat = await createChat(trimmed.slice(0, 30));
         if (!activeChat) return;
         dispatch(addChatData(activeChat));
@@ -87,7 +87,7 @@ const ChatInput = ({ value = "", onChange, isGenerating, setIsGenerating }) => {
   return (
     <div className="w-full max-w-3xl mx-auto px-4">
       {/* DeepSeek Style Rounded Container */}
-      <div className="rounded-[26px] bg-[#22242a] p-3.5 shadow-xl transition-all">
+      <div className="rounded-[26px] bg-[#141722] border border-white/10 p-3.5 shadow-2xl backdrop-blur-md transition-all focus-within:border-blue-500/40 focus-within:ring-1 focus-within:ring-blue-500/20">
         <Textarea
           value={value}
           onChange={(e) => onChange?.(e.target.value)}

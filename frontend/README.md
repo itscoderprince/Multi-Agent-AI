@@ -1,16 +1,41 @@
-# React + Vite
+# Multi-Agent AI — Frontend (SarthiAi)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+The modern conversational user interface for the **Multi-Agent AI** platform.
 
-Currently, two official plugins are available:
+Built with **React 19**, **Vite 8**, **Tailwind CSS v4**, **Redux Toolkit**, and **Firebase Authentication**.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## 📖 In-Depth Frontend Documentation
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+For the complete technical architecture manual, component hierarchy, Redux state machine, API flows, and engineering roadmap, see:
 
-## Expanding the ESLint configuration
+👉 **[FRONTEND_ARCHITECTURE.md](./FRONTEND_ARCHITECTURE.md)**
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+---
+
+## 🚀 Quick Start
+
+### 1. Install Dependencies
+```powershell
+npm install
+```
+
+### 2. Start Vite Development Server
+```powershell
+npm run dev
+```
+*Frontend runs on `http://localhost:5173`.*
+
+---
+
+## 🏛️ Spatial Architecture & Key Components
+
+| Section | Component | Description |
+| :--- | :--- | :--- |
+| **Authentication** | [`LoginCard.jsx`](src/components/auth/LoginCard.jsx) | Google OAuth popup via Firebase & Demo mode bypass |
+| **Navigation** | [`Sidebar.jsx`](src/components/sidebar/Sidebar.jsx) | Collapsible conversation list, New Chat, and demo presets |
+| **Active Chat** | [`Chat.jsx`](src/components/chat/Chat.jsx) | Main chat container orchestrating navigation, messages, and input |
+| **Messages View** | [`ChatMsg.jsx`](src/components/chat/messages/ChatMsg.jsx) | Welcome screen with suggested prompts, Markdown message history, and typing indicator |
+| **Input Bar** | [`ChatInput.jsx`](src/components/chat/ChatInput.jsx) | Floating pill input bar, search toggle, and optimistic message dispatch |
+| **Inspector** | [`Artifact.jsx`](src/components/artifact/Artifact.jsx) | Right-hand panel for code, documents, and diagram previews |

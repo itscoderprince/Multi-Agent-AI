@@ -10,7 +10,7 @@ const ChatNav = () => {
   const selectedChat = useSelector((state) => state.chats.selectedChat);
 
   return (
-    <header className="h-13 shrink-0 border-b border-white/6 px-4 flex items-center justify-between bg-[#0d0f14]/80 backdrop-blur-sm z-10">
+    <header className="h-13 shrink-0 border-b border-white/8 px-4 flex items-center justify-between bg-[#0a0c10]/80 backdrop-blur-md z-10">
       <div className="flex items-center gap-3 min-w-0">
         <div className="flex items-center gap-2 min-w-0">
           <div className="size-2 rounded-full bg-emerald-400 shrink-0 animate-pulse" />
