@@ -29,8 +29,21 @@ app.use(morgan("dev"));
 // Proxy to Auth Service (parseReqBody: false pipes the raw stream and prevents Node 20+ header errors)
 app.use(
   "/auth",
-  proxy(process.env.AUTH_SERVICE, {
+  proxy(process.env.AUTH_SERVICE || "http://localhost:2000", {
     parseReqBody: false,
+    timeout: 10000,
+    proxyErrorHandler: async (err, res, next) => {
+      console.warn(`[Gateway ⚠️ Auth Proxy]: ${err.message}`);
+      // On ECONNRESET the auth service is restarting — wait for it to come back before responding
+      // so the browser's immediate retry lands on a live service
+      if (err.code === "ECONNRESET" || err.code === "ECONNREFUSED") {
+        await new Promise((r) => setTimeout(r, 1500));
+      }
+      return res.status(503).json({
+        success: false,
+        message: "Auth service restarted. Retrying automatically…",
+      });
+    },
   }),
 );
 

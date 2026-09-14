@@ -36,8 +36,7 @@ app.use("/", chatRoutes);
 app.use(notFound);
 app.use(errorHandler);
 
-await connectDB();
-
+// Start server immediately so Gateway never gets 504 on restarts/startup
 app.listen(PORT, () => {
   console.log(
     `\n💬 [CHAT SERVICE] 🚀 Chat server is running on port: ${PORT} ✨`,
@@ -45,3 +44,6 @@ app.listen(PORT, () => {
   console.log(`📡 URL: http://localhost:${PORT}`);
   console.log(`🔑 Health: http://localhost:${PORT}/health\n`);
 });
+
+// Connect to MongoDB Atlas (Mongoose automatically buffers queries until connected)
+connectDB();

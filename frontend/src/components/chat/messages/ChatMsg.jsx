@@ -1,4 +1,5 @@
 import { useSelector } from "react-redux";
+import { Loader2 } from "lucide-react";
 import {
   MessageScrollerProvider,
   MessageScroller,
@@ -13,12 +14,28 @@ import AssistantMessage from "./AssistantMessage";
 import ThinkingIndicator from "./ThinkingIndicator";
 
 /**
+ * Centered loading spinner displayed while switching between chats.
+ */
+function ChatLoadingSpinner() {
+  return (
+    <div className="flex-1 w-full h-full flex items-center justify-center animate-in fade-in duration-150">
+      <Loader2 className="size-6 text-zinc-400 animate-spin" />
+    </div>
+  );
+}
+
+/**
  * Main conversation message viewport.
- * Orchestrates UserMessage, AssistantMessage, ChatEmptyState, and ThinkingIndicator.
+ * Orchestrates UserMessage, AssistantMessage, ChatEmptyState, ThinkingIndicator, and ChatLoadingSpinner.
  * Adopts a clean DeepSeek / ChatGPT / Groq aesthetic without avatar clutter.
  */
-export function ChatMsg({ onSelectPrompt, isGenerating }) {
+export function ChatMsg({ onSelectPrompt, isGenerating, isLoading }) {
   const messages = useSelector((state) => state.messages.messageData);
+
+  // Loading State when switching chats
+  if (isLoading) {
+    return <ChatLoadingSpinner />;
+  }
 
   // Welcome State: If no messages in the active thread
   if (!messages || messages.length === 0) {
@@ -43,7 +60,12 @@ export function ChatMsg({ onSelectPrompt, isGenerating }) {
                     {isUser ? (
                       <UserMessage content={msg.content} />
                     ) : (
-                      <AssistantMessage content={msg.content} images={msg.images} />
+                      <AssistantMessage
+                        content={msg.content}
+                        images={msg.images}
+                        artifact={msg.artifact}
+                        uiFiles={msg.uiFiles}
+                      />
                     )}
                   </MessageScrollerItem>
                 );

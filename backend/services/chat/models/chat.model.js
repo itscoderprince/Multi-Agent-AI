@@ -21,6 +21,9 @@ const chatSchema = new mongoose.Schema(
   { timestamps: true, collection: "chats" }
 );
 
+// Compound index for fast user conversations lookup sorted by last activity
+chatSchema.index({ userId: 1, updatedAt: -1 });
+
 const Chat = mongoose.models.Chat || mongoose.model("Chat", chatSchema, "chats");
 
 export default Chat;

@@ -29,6 +29,43 @@ vision`;
 const VALID_AGENTS = new Set(["chat", "search", "coding", "pdf", "ppt", "vision"]);
 
 /**
+ * Fast-path regex routing: matches clear, obvious user intent in 0ms without an LLM round-trip.
+ */
+function fastRoute(prompt) {
+  const p = prompt.toLowerCase().trim();
+
+  // Explicit PPT / Presentation
+  if (/\b(ppt|powerpoint|slides?|pitch deck|presentation)\b/i.test(p)) {
+    return "ppt";
+  }
+
+  // Explicit PDF
+  if (/\b(pdf|export to pdf|make a pdf|convert to pdf)\b/i.test(p)) {
+    return "pdf";
+  }
+
+  // Vision / Image generation
+  if (/\b(generate (an? )?image|draw (an? )?image|create (an? )?image|make (an? )?image|picture of)\b/i.test(p)) {
+    return "vision";
+  }
+
+  // Real-time news & web search
+  if (/\b(latest news|current weather|stock price|live score|today's news|search the web|search online)\b/i.test(p)) {
+    return "search";
+  }
+
+  // Obvious Coding / Programming / Artifacts
+  if (
+    /\b(write code|create a function|debug|fix (the|this)? error|html|css|javascript|typescript|react|vue|node\.?js|python|java|c\+\+|golang|rust|sql query|build a component|build an app|calculator app|todo app)\b/i.test(p) ||
+    /```[\s\S]*```/.test(prompt)
+  ) {
+    return "coding";
+  }
+
+  return null;
+}
+
+/**
  * Router Agent Node
  * Analyzes the user's prompt using Groq (ultra-fast inference) to classify intent
  * and sets `state.agent` to direct the workflow to the correct agent node.
@@ -40,10 +77,17 @@ const VALID_AGENTS = new Set(["chat", "search", "coding", "pdf", "ppt", "vision"
 export const router = async (state) => {
   const { prompt, agent: requestedAgent } = state;
 
-  // If a valid agent was explicitly requested (not "auto"), bypass LLM classification
+  // 1. If a valid agent was explicitly requested (not "auto"), bypass LLM classification
   if (requestedAgent && requestedAgent !== "auto" && VALID_AGENTS.has(requestedAgent)) {
     console.log(`[Router 🎯]: Manual agent explicitly selected -> "${requestedAgent}"`);
     return { agent: requestedAgent };
+  }
+
+  // 2. Fast-path regex bypass (0ms instant routing for unambiguous intent)
+  const fastAgent = fastRoute(prompt);
+  if (fastAgent) {
+    console.log(`[Router ⚡ Fast-Path]: Instant regex match -> "${fastAgent}" (0ms bypass)`);
+    return { agent: fastAgent };
   }
 
   const preview = prompt.length > 60 ? prompt.slice(0, 60) + "..." : prompt;

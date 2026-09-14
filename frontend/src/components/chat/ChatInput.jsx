@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -48,6 +48,7 @@ const ChatInput = ({ value = "", onChange, isGenerating, setIsGenerating }) => {
   const [selectedAgent, setSelectedAgent] = useState("auto");
   const [webSearch, setWebSearch] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const isSendingRef = useRef(false);
 
   const loading = isGenerating ?? localLoading;
   const setLoading = setIsGenerating ?? setLocalLoading;
@@ -57,17 +58,24 @@ const ChatInput = ({ value = "", onChange, isGenerating, setIsGenerating }) => {
 
   const handleSend = async () => {
     const trimmed = value.trim();
-    if (!trimmed || loading) return;
+    if (!trimmed || loading || isSendingRef.current) return;
 
     try {
+      isSendingRef.current = true;
       setLoading(true);
 
+      // Create chat if none is selected
       let activeChat = selectedChat;
+      let isNewChat = false;
       if (!activeChat?._id) {
         activeChat = await createChat(trimmed.slice(0, 30));
         if (!activeChat) return;
-        dispatch(addChatData(activeChat));
-        dispatch(setSelectChat(activeChat));
+        isNewChat = true;
+        // Tag newly created chat so Chat.jsx message fetcher doesn't race and clobber optimistic state
+        const newChatObj = { ...activeChat, isNewlyCreated: true };
+        dispatch(addChatData(newChatObj));
+        dispatch(setSelectChat(newChatObj));
+        activeChat = newChatObj;
       }
 
       // Optimistically display user prompt in chat
@@ -83,25 +91,38 @@ const ChatInput = ({ value = "", onChange, isGenerating, setIsGenerating }) => {
       // When Search tool is enabled, route to search specialist
       const agentToSend = webSearch ? "search" : selectedAgent;
 
-      // Get response from agent service
-      const { data } = await api.post("/agent", {
-        prompt: trimmed,
-        chatId: activeChat._id,
-        agent: agentToSend,
-      });
+      // Call agent service — retry once for new chats where the DB write may not have propagated yet
+      let responseData;
+      try {
+        const { data } = await api.post("/agent", {
+          prompt: trimmed,
+          chatId: activeChat._id,
+          agent: agentToSend,
+        });
+        responseData = data?.data;
+      } catch (firstErr) {
+        if (isNewChat) {
+          // Brief delay then retry: new chat doc may not be ready in DB yet
+          await new Promise((r) => setTimeout(r, 600));
+          const { data } = await api.post("/agent", {
+            prompt: trimmed,
+            chatId: activeChat._id,
+            agent: agentToSend,
+          });
+          responseData = data?.data;
+        } else {
+          throw firstErr;
+        }
+      }
 
-      // Display agent response in chat
-      const responseImages = data?.data?.message?.images?.length
-        ? data.data.message.images
-        : (data?.data?.images || []);
-
+      // Build assistant message from agent response
       const agentMessage = {
-        ...(data?.data?.message || {
-          _id: `agent-${Date.now()}`,
-          role: "assistant",
-          content: data?.data?.aiResponse || "No response received.",
-        }),
-        images: responseImages,
+        _id: `agent-${Date.now()}`,
+        role: "assistant",
+        content: responseData?.aiResponse || "No response received.",
+        images: responseData?.images || [],
+        artifact: responseData?.artifact || null,
+        uiFiles: responseData?.uiFiles || null,
       };
       dispatch(addMessageData(agentMessage));
     } catch (err) {
@@ -116,6 +137,7 @@ const ChatInput = ({ value = "", onChange, isGenerating, setIsGenerating }) => {
       );
     } finally {
       setLoading(false);
+      isSendingRef.current = false;
     }
   };
 

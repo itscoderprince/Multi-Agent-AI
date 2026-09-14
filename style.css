@@ -1,0 +1,148 @@
+/* ========== CSS Custom Properties (Design Tokens) ========== */
+:root {
+  --color-bg: #0f1117;
+  --color-calculator: #181b24;
+  --color-display-bg: #12141c;
+  --color-display-text: #ffffff;
+  --color-expression-text: #8a8ab8;
+  --color-btn-number-bg: #232734;
+  --color-btn-number-hover: #2e3344;
+  --color-btn-function-bg: #2d3345;
+  --color-btn-function-hover: #3b435b;
+  --color-btn-operator-bg: #10b981;
+  --color-btn-operator-hover: #059669;
+  --color-btn-equals-bg: #2563eb;
+  --color-btn-equals-hover: #1d4ed8;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --radius-lg: 24px;
+  --radius-md: 14px;
+  --radius-sm: 8px;
+  --font-primary: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --transition-fast: 0.15s ease;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-primary);
+  background: radial-gradient(circle at top, #1f2438, var(--color-bg));
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  color: #fff;
+}
+
+.calculator {
+  width: 100%;
+  max-width: 360px;
+  background: var(--color-calculator);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45);
+}
+
+.display {
+  background: var(--color-display-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+  min-height: 96px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-end;
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.expression {
+  font-size: 14px;
+  color: var(--color-expression-text);
+  min-height: 20px;
+  margin-bottom: 4px;
+  word-break: break-all;
+}
+
+.current-value {
+  font-size: 36px;
+  font-weight: 600;
+  color: var(--color-display-text);
+  line-height: 1.1;
+  word-break: break-all;
+}
+
+.buttons {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.btn {
+  height: 58px;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+
+.btn:active {
+  transform: scale(0.95);
+}
+
+.btn-number {
+  background: var(--color-btn-number-bg);
+}
+
+.btn-number:hover {
+  background: var(--color-btn-number-hover);
+}
+
+.btn-function {
+  background: var(--color-btn-function-bg);
+  color: #cbd5e1;
+}
+
+.btn-function:hover {
+  background: var(--color-btn-function-hover);
+}
+
+.btn-operator {
+  background: var(--color-btn-operator-bg);
+  color: #fff;
+}
+
+.btn-operator:hover {
+  background: var(--color-btn-operator-hover);
+}
+
+.btn-equals {
+  background: var(--color-btn-equals-bg);
+  color: #fff;
+}
+
+.btn-equals:hover {
+  background: var(--color-btn-equals-hover);
+}
+
+.btn-zero {
+  grid-column: span 1;
+  background: var(--color-btn-number-bg);
+}
+
+.btn-zero:hover {
+  background: var(--color-btn-number-hover);
+}

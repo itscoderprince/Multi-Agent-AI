@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Check, Copy } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useDispatch } from "react-redux";
+import { Check, Copy, Download, Play } from "lucide-react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { setActiveArtifact } from "@/redux/slices/messageSlice";
 
-// Override oneDark background to match our UI's #090b10
+// Custom dark syntax theme
 const theme = {
   ...oneDark,
   'pre[class*="language-"]': {
@@ -24,13 +25,47 @@ const theme = {
   },
 };
 
+const RUNNABLE_LANGUAGES = new Set([
+  "html",
+  "htm",
+  "css",
+  "js",
+  "javascript",
+  "jsx",
+  "ts",
+  "typescript",
+  "tsx",
+  "svg",
+  "xml",
+]);
+
+const EXT_MAP = {
+  html: "html",
+  htm: "html",
+  css: "css",
+  javascript: "js",
+  js: "js",
+  jsx: "jsx",
+  typescript: "ts",
+  ts: "ts",
+  tsx: "tsx",
+  python: "py",
+  py: "py",
+  json: "json",
+  markdown: "md",
+  md: "md",
+};
+
 /**
- * Modern code block with react-syntax-highlighter (Prism / oneDark theme).
- * Shows language label + copy button in the header bar.
+ * CodeBlock with Copy, Download, and Run actions matching ChatGPT / DeepSeek.
  */
-export function CodeBlock({ language, children }) {
+export function CodeBlock({ language = "text", children }) {
+  const dispatch = useDispatch();
   const [copied, setCopied] = useState(false);
-  const code = String(children).replace(/\n$/, "");
+
+  const code = String(children || "").replace(/\n$/, "");
+  const lang = (language || "text").toLowerCase();
+  const isRunnable = RUNNABLE_LANGUAGES.has(lang);
 
   const handleCopy = () => {
     if (!code) return;
@@ -39,42 +74,97 @@ export function CodeBlock({ language, children }) {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleDownload = () => {
+    const ext = EXT_MAP[lang] || "txt";
+    const filename = lang === "html" ? "index.html" : `code.${ext}`;
+    const blob = new Blob([code], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleRun = () => {
+    const ext = EXT_MAP[lang] || "html";
+    const filename = lang === "html" ? "index.html" : `script.${ext}`;
+    dispatch(
+      setActiveArtifact({
+        id: Date.now(),
+        title: lang === "html" ? "Simple Calculator" : `${lang.toUpperCase()} Preview`,
+        files: [{ name: filename, content: code }],
+      })
+    );
+  };
+
   return (
-    <div className="relative my-3.5 rounded-xl border border-white/10 bg-[#090b10] overflow-hidden shadow-lg">
+    <div className="relative my-3 rounded-xl border border-white/10 bg-[#0d0f14] overflow-hidden shadow-md">
       {/* Header bar */}
-      <div className="flex items-center justify-between px-3.5 py-1.5 bg-white/[0.04] border-b border-white/8 text-[11px] font-mono text-zinc-400">
-        <span className="uppercase tracking-wider font-semibold text-emerald-400/90">
-          {language || "code"}
-        </span>
-        <Button
-          variant="ghost"
-          size="xs"
-          onClick={handleCopy}
-          className="h-6 px-2 text-zinc-400 hover:text-white hover:bg-white/10 text-[11px] gap-1.5 cursor-pointer rounded-md transition-colors"
-          title="Copy code"
-        >
-          {copied ? (
+      <div className="flex items-center justify-between px-3.5 py-2 bg-white/[0.03] border-b border-white/6 text-xs font-mono text-zinc-400">
+        <span className="font-medium text-zinc-400 lowercase">{lang}</span>
+
+        {/* Actions: Copy | Download | Run */}
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={handleCopy}
+            className="flex items-center gap-1.5 text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer text-xs"
+            title="Copy code"
+          >
+            {copied ? (
+              <>
+                <Check className="size-3.5 text-emerald-400" />
+                <span className="text-emerald-400 font-sans">Copied</span>
+              </>
+            ) : (
+              <>
+                <Copy className="size-3.5" />
+                <span className="font-sans">Copy</span>
+              </>
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={handleDownload}
+            className="flex items-center gap-1.5 text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer text-xs"
+            title="Download file"
+          >
+            <Download className="size-3.5" />
+            <span className="font-sans">Download</span>
+          </button>
+
+          {isRunnable && (
             <>
-              <Check className="size-3 text-emerald-400" />
-              <span className="text-emerald-400">Copied</span>
-            </>
-          ) : (
-            <>
-              <Copy className="size-3" />
-              <span>Copy</span>
+              <span className="text-zinc-700 select-none">|</span>
+              <button
+                type="button"
+                onClick={handleRun}
+                className="flex items-center gap-1.5 text-zinc-200 hover:text-emerald-400 transition-colors cursor-pointer font-medium text-xs"
+                title="Run and preview code"
+              >
+                <Play className="size-3.5 fill-current" />
+                <span className="font-sans">Run</span>
+              </button>
             </>
           )}
-        </Button>
+        </div>
       </div>
 
-      {/* Syntax-highlighted body */}
-      <div className="p-3.5 overflow-x-auto scrollbar-thin">
+      {/* Code body */}
+      <div className="p-3.5 overflow-x-auto scrollbar-thin text-[13px]">
         <SyntaxHighlighter
-          language={language || "text"}
+          language={lang}
           style={theme}
           PreTag="div"
           CodeTag="code"
           wrapLongLines={false}
+          codeTagProps={{
+            style: {
+              background: "transparent",
+            },
+          }}
           customStyle={{
             background: "transparent",
             margin: 0,

@@ -43,7 +43,7 @@ export const getChats = asyncHandler(async (req, res) => {
     );
   }
 
-  const chats = await Chat.find({ userId }).sort({ updatedAt: -1 });
+  const chats = await Chat.find({ userId }).sort({ updatedAt: -1 }).lean();
 
   return sendSuccess(res, chats, "Chats retrieved successfully 💬");
 });
@@ -59,7 +59,7 @@ export const getChatById = asyncHandler(async (req, res) => {
     throw new AppError("Chat ID is required", 400);
   }
 
-  const chat = await Chat.findById(chatId);
+  const chat = await Chat.findById(chatId).lean();
   if (!chat) {
     throw new AppError("Chat not found", 404);
   }
@@ -75,8 +75,17 @@ export const getChatById = asyncHandler(async (req, res) => {
  * Saves a message (user or assistant) to a chat and updates the chat's lastMessage
  */
 export const saveChat = asyncHandler(async (req, res) => {
-  const { chat, chatId, role = "user", content, images = [] } = req.body;
-  const targetChatId = chatId || chat || req.params.chatId;
+  const {
+    chat,
+    chatId,
+    conversationId,
+    role = "user",
+    content,
+    images = [],
+    artifact = null,
+    uiFiles = [],
+  } = req.body;
+  const targetChatId = chatId || chat || conversationId || req.params.chatId;
 
   if (!targetChatId) {
     throw new AppError("Chat ID is required", 400);
@@ -89,24 +98,43 @@ export const saveChat = asyncHandler(async (req, res) => {
   const userId = req.headers["x-user-id"];
   const senderId = role === "assistant" ? "assistant" : (userId || "user");
 
-  // Verify chat exists
-  const existingChat = await Chat.findById(targetChatId);
+  // Verify chat exists and update lastMessage atomically (single DB operation)
+  const existingChat = await Chat.findByIdAndUpdate(
+    targetChatId,
+    { lastMessage: content.trim() },
+    { returnDocument: "after" }
+  ).lean();
   if (!existingChat) {
     throw new AppError("Chat not found", 404);
+  }
+
+  // Normalize artifact if uiFiles are passed without artifact
+  let resolvedArtifact = artifact;
+  const resolvedFiles = Array.isArray(uiFiles) && uiFiles.length > 0
+    ? uiFiles
+    : Array.isArray(artifact?.files)
+    ? artifact.files
+    : [];
+
+  if (!resolvedArtifact && resolvedFiles.length > 0) {
+    resolvedArtifact = {
+      id: Date.now(),
+      type: "application/code",
+      files: resolvedFiles,
+    };
   }
 
   // Create message
   const message = await Message.create({
     chatId: targetChatId,
+    conversationId: targetChatId,
     senderId,
     role,
     content: content.trim(),
     images: Array.isArray(images) ? images : [],
+    artifact: resolvedArtifact,
+    uiFiles: resolvedFiles,
   });
-
-  // Update lastMessage on Chat
-  existingChat.lastMessage = content.trim();
-  await existingChat.save();
 
   return sendSuccess(res, message, "Message saved successfully 💬", 201);
 });
@@ -121,7 +149,7 @@ export const getMessages = asyncHandler(async (req, res) => {
     throw new AppError("Chat ID is required", 400);
   }
 
-  const messages = await Message.find({ chatId }).sort({ createdAt: 1 });
+  const messages = await Message.find({ chatId }).sort({ createdAt: 1 }).lean();
 
   return sendSuccess(res, messages, "Messages retrieved successfully 💬");
 });

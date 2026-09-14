@@ -35,7 +35,7 @@ app.use("/auth", authRoutes);
 app.use(notFound);
 app.use(errorHandler);
 
-await connectDB();
+// Start server immediately so Gateway never gets 504 on restarts/startup
 app.listen(PORT, () => {
   console.log(
     `\n🔐 [AUTH SERVICE] 🛡️  Auth server is running on port: ${PORT} 🚀`,
@@ -43,3 +43,6 @@ app.listen(PORT, () => {
   console.log(`📡 URL: http://localhost:${PORT}`);
   console.log(`🔑 Health: http://localhost:${PORT}/health\n`);
 });
+
+// Connect to MongoDB Atlas (Mongoose automatically buffers any queries until connected)
+connectDB();

@@ -31,9 +31,29 @@ export default function Home() {
       const token = await result.user.getIdToken();
 
       // 2. Authenticate with Backend via Gateway
-      const response = await api.post("/auth/login", { token });
-      const userData =
-        response.data?.data || response.data?.user || response.data;
+      // Silently retries up to 3 times if the auth service is restarting (503 / ECONNRESET on dev)
+      const delays = [0, 800, 1800]; // ms to wait before each attempt
+      let response;
+      let lastErr;
+      for (const delay of delays) {
+        if (delay > 0) await new Promise((r) => setTimeout(r, delay));
+        try {
+          response = await api.post("/auth/login", { token });
+          break; // success — stop retrying
+        } catch (err) {
+          const status = err.response?.status;
+          // Only retry on transient gateway/service errors (502, 503, 504)
+          if (status >= 502 && status <= 504) {
+            lastErr = err;
+            continue;
+          }
+          throw err; // hard error (401, 400, etc.) — don't retry
+        }
+      }
+
+      if (!response) throw lastErr;
+
+      const userData = response.data?.data || response.data?.user || response.data;
       dispatch(setUserData(userData));
     } catch (err) {
       console.error("Login error:", err);

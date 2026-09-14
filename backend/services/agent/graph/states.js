@@ -7,4 +7,6 @@ export const agentState = Annotation.Root({
   chatId: Annotation(),
   searchResults: Annotation(),
   images: Annotation(),
+  artifacts: Annotation(),
+  uiFiles: Annotation(),     // ui_generation: [{name, content}] file schema
 });

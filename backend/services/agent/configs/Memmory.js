@@ -52,7 +52,12 @@ export const addMessage = async (chatId, message, aiResponse) => {
       messages.push(...message.map(normalize).filter(Boolean));
     } else {
       const formatted = normalize(message);
-      if (formatted) messages.push(formatted);
+      if (formatted) {
+        const last = messages[messages.length - 1];
+        if (!last || last.role !== formatted.role || last.content !== formatted.content) {
+          messages.push(formatted);
+        }
+      }
     }
 
     const updated = messages.slice(-20);
