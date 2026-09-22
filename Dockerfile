@@ -29,8 +29,8 @@ EXPOSE 1000
 
 # Run all 3 internal microservices in background, Gateway in foreground
 CMD sh -c "\
-  node backend/services/auth/index.js & \
-  node backend/services/chat/index.js & \
-  node backend/services/agent/index.js & \
+  PORT=2000 node backend/services/auth/index.js & \
+  PORT=3000 node backend/services/chat/index.js & \
+  PORT=4000 node backend/services/agent/index.js & \
   node backend/gateway/index.js \
 "
