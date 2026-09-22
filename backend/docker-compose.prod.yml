@@ -1,0 +1,110 @@
+# Production Docker Compose for Web / Cloud Deployment
+# Pulls pre-built images from Docker Hub (itscoderprince)
+services:
+  redis:
+    image: redis:alpine
+    container_name: Multi_agent_ai
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - app_network
+
+  auth-service:
+    image: itscoderprince/multi-agent-auth:latest
+    container_name: multi_agent_auth
+    restart: always
+    expose:
+      - "2000"
+    ports:
+      - "2000:2000"
+    environment:
+      - PORT=2000
+      - NODE_ENV=production
+      - REDIS_URL=redis://redis:6379
+      - MONGO_URI=mongodb+srv://itscoderprince_db_user:wD2xsZPlUeZgZ0So@multiagentai.syq9rtw.mongodb.net/multi_agent_ai?retryWrites=true&w=majority&appName=MultiAgentAi
+      - MONGODB_URI=mongodb+srv://itscoderprince_db_user:wD2xsZPlUeZgZ0So@multiagentai.syq9rtw.mongodb.net/multi_agent_ai?retryWrites=true&w=majority&appName=MultiAgentAi
+      - DB_NAME=multi_agent_ai
+      - JWT_SECRET=multi_agent_ai_auth_secret_key_2026_super_secure
+      - JWT_EXPIRES_IN=7d
+      - FIREBASE_PROJECT_ID=multi-agent-ai-d08b2
+    depends_on:
+      - redis
+    networks:
+      - app_network
+
+  chat-service:
+    image: itscoderprince/multi-agent-chat:latest
+    container_name: multi_agent_chat
+    restart: always
+    expose:
+      - "3000"
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+      - REDIS_URL=redis://redis:6379
+      - MONGO_URI=mongodb+srv://itscoderprince_db_user:wD2xsZPlUeZgZ0So@multiagentai.syq9rtw.mongodb.net/multi_agent_ai?retryWrites=true&w=majority&appName=MultiAgentAi
+      - MONGODB_URI=mongodb+srv://itscoderprince_db_user:wD2xsZPlUeZgZ0So@multiagentai.syq9rtw.mongodb.net/multi_agent_ai?retryWrites=true&w=majority&appName=MultiAgentAi
+      - DB_NAME=multi_agent_ai
+      - JWT_SECRET=multi_agent_ai_auth_secret_key_2026_super_secure
+      - JWT_EXPIRES_IN=7d
+      - FIREBASE_PROJECT_ID=multi-agent-ai-d08b2
+    depends_on:
+      - redis
+    networks:
+      - app_network
+
+  agent-service:
+    image: itscoderprince/multi-agent-agent:latest
+    container_name: multi_agent_agent
+    restart: always
+    expose:
+      - "4000"
+    ports:
+      - "4000:4000"
+    environment:
+      - PORT=4000
+      - NODE_ENV=production
+      - CHAT_SERVICE=http://chat-service:3000
+      - REDIS_URL=redis://redis:6379
+      - GROQ_API_KEY=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
+      - GOOGLE_API_KEY=AQ.Ab8RN6LwtQ9MKS_wayV3qFQ-SiqEU1YoEzoZ645oCPR0TXtSfg
+      - TAVILY_API_KEY=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
+      - OPENROUTER_API_KEY=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
+    depends_on:
+      - redis
+      - chat-service
+    networks:
+      - app_network
+
+  gateway:
+    image: itscoderprince/multi-agent-gateway:latest
+    container_name: multi_agent_gateway
+    restart: always
+    ports:
+      - "1000:1000"
+    environment:
+      - PORT=1000
+      - NODE_ENV=production
+      - AUTH_SERVICE=http://auth-service:2000
+      - CHAT_SERVICE=http://chat-service:3000
+      - AGENT_SERVICE=http://agent-service:4000
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - redis
+      - auth-service
+      - chat-service
+      - agent-service
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge
+
+volumes:
+  redis_data:

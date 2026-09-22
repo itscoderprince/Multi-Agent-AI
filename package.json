@@ -7,7 +7,10 @@
   "scripts": {
     "redis": "docker compose -f backend/docker-compose.yml up -d",
     "dev:backend": "npm run redis && concurrently -n \"🚪 GATEWAY,🔐 AUTH,💬 CHAT,🤖 AGENT\" -c \"cyan.bold,green.bold,yellow.bold,magenta.bold\" \"npm run dev --prefix backend/gateway\" \"npm run dev --prefix backend/services/auth\" \"npm run dev --prefix backend/services/chat\" \"npm run dev --prefix backend/services/agent\"",
-    "dev": "npm run redis && concurrently -n \"🚪 GATEWAY,🔐 AUTH,💬 CHAT,🤖 AGENT,💻 FRONTEND\" -c \"cyan.bold,green.bold,yellow.bold,magenta.bold,blue.bold\" \"npm run dev --prefix backend/gateway\" \"npm run dev --prefix backend/services/auth\" \"npm run dev --prefix backend/services/chat\" \"npm run dev --prefix backend/services/agent\" \"npm run dev --prefix frontend\""
+    "dev": "npm run redis && concurrently -n \"🚪 GATEWAY,🔐 AUTH,💬 CHAT,🤖 AGENT,💻 FRONTEND\" -c \"cyan.bold,green.bold,yellow.bold,magenta.bold,blue.bold\" \"npm run dev --prefix backend/gateway\" \"npm run dev --prefix backend/services/auth\" \"npm run dev --prefix backend/services/chat\" \"npm run dev --prefix backend/services/agent\" \"npm run dev --prefix frontend\"",
+    "docker:up": "docker compose -f backend/docker-compose.yml up --build -d",
+    "docker:down": "docker compose -f backend/docker-compose.yml down",
+    "docker:logs": "docker compose -f backend/docker-compose.yml logs -f"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"
