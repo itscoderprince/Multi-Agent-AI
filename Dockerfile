@@ -2,23 +2,25 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy backend source code
+# Copy backend package files
 COPY backend/package*.json ./backend/
 COPY backend/gateway/package*.json ./backend/gateway/
 COPY backend/services/auth/package*.json ./backend/services/auth/
 COPY backend/services/chat/package*.json ./backend/services/chat/
 COPY backend/services/agent/package*.json ./backend/services/agent/
 
-# Install dependencies for each microservice
+# Install dependencies for shared backend (ioredis, dotenv) and each microservice
+RUN cd backend && npm install --omit=dev
 RUN cd backend/gateway && npm install --omit=dev
 RUN cd backend/services/auth && npm install --omit=dev
 RUN cd backend/services/chat && npm install --omit=dev
 RUN cd backend/services/agent && npm install --omit=dev
 
-# Copy entire backend
+# Copy entire backend source
 COPY backend/ ./backend/
 
 ENV NODE_ENV=production
+ENV NODE_PATH=/app/backend/node_modules:/app/node_modules
 ENV AUTH_SERVICE=http://127.0.0.1:2000
 ENV CHAT_SERVICE=http://127.0.0.1:3000
 ENV AGENT_SERVICE=http://127.0.0.1:4000
