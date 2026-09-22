@@ -1,6 +1,17 @@
-# Production Docker Compose for Web / Cloud Deployment
-# Pulls pre-built images from Docker Hub (itscoderprince)
+# Production Fullstack Docker Compose for Web / Cloud Deployment
+# Pulls pre-built microservices & frontend from Docker Hub account: itscoderprince
 services:
+  frontend:
+    image: itscoderprince/multi-agent-frontend:latest
+    container_name: multi_agent_frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - gateway
+    networks:
+      - app_network
+
   redis:
     image: redis:alpine
     container_name: Multi_agent_ai
