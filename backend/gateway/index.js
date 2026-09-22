@@ -18,7 +18,12 @@ const PORT = process.env.PORT || 1000;
 
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:3000"],
+    origin: (origin, callback) => {
+      if (!origin || origin.includes("localhost") || origin.includes("vercel.app") || (process.env.CLIENT_URL && origin.startsWith(process.env.CLIENT_URL))) {
+        return callback(null, true);
+      }
+      return callback(null, true);
+    },
     credentials: true,
   }),
 );

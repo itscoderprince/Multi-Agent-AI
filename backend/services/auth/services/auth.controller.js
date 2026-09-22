@@ -40,10 +40,11 @@ export const login = asyncHandler(async (req, res) => {
     7 * 24 * 60 * 60,
   );
 
+  const isProd = process.env.NODE_ENV === "production";
   res.cookie("session", sessionId, {
     httpOnly: true,
-    secure: false,
-    sameSite: "strict",
+    secure: isProd,
+    sameSite: isProd ? "none" : "lax",
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
@@ -57,10 +58,11 @@ export const logout = asyncHandler(async (req, res) => {
     await redis.del(`session-${sessionId}`);
   }
 
+  const isProd = process.env.NODE_ENV === "production";
   res.clearCookie("session", {
     httpOnly: true,
-    secure: false,
-    sameSite: "strict",
+    secure: isProd,
+    sameSite: isProd ? "none" : "lax",
   });
 
   return sendSuccess(res, null, "Logged out successfully ✅");
