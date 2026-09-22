@@ -52,11 +52,18 @@ app.use(
   ["/chat", "/chats"],
   checkAuth,
   proxy(process.env.CHAT_SERVICE || "http://localhost:3000", {
-    parseReqBody: false,
+    timeout: 15000,
     proxyReqOptDecorator: (proxyReqOpts, srcReq) => {
       proxyReqOpts.headers["x-user-id"] = srcReq.user?.userId || "";
       proxyReqOpts.headers["x-user-email"] = srcReq.user?.email || "";
       return proxyReqOpts;
+    },
+    proxyErrorHandler: (err, res, next) => {
+      console.warn(`[Gateway ⚠️ Chat Proxy Error]:`, err.message);
+      return res.status(503).json({
+        success: false,
+        message: "Chat service temporarily unavailable. Please try again.",
+      });
     },
   }),
 );
@@ -66,11 +73,18 @@ app.use(
   "/agent",
   checkAuth,
   proxy(process.env.AGENT_SERVICE || "http://localhost:4000", {
-    parseReqBody: false,
+    timeout: 60000,
     proxyReqOptDecorator: (proxyReqOpts, srcReq) => {
       proxyReqOpts.headers["x-user-id"] = srcReq.user?.userId || "";
       proxyReqOpts.headers["x-user-email"] = srcReq.user?.email || "";
       return proxyReqOpts;
+    },
+    proxyErrorHandler: (err, res, next) => {
+      console.warn(`[Gateway ⚠️ Agent Proxy Error]:`, err.message);
+      return res.status(503).json({
+        success: false,
+        message: "Agent service temporarily unavailable. Please try again.",
+      });
     },
   }),
 );

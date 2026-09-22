@@ -91,29 +91,13 @@ const ChatInput = ({ value = "", onChange, isGenerating, setIsGenerating }) => {
       // When Search tool is enabled, route to search specialist
       const agentToSend = webSearch ? "search" : selectedAgent;
 
-      // Call agent service — retry once for new chats where the DB write may not have propagated yet
-      let responseData;
-      try {
-        const { data } = await api.post("/agent", {
-          prompt: trimmed,
-          chatId: activeChat._id,
-          agent: agentToSend,
-        });
-        responseData = data?.data;
-      } catch (firstErr) {
-        if (isNewChat) {
-          // Brief delay then retry: new chat doc may not be ready in DB yet
-          await new Promise((r) => setTimeout(r, 600));
-          const { data } = await api.post("/agent", {
-            prompt: trimmed,
-            chatId: activeChat._id,
-            agent: agentToSend,
-          });
-          responseData = data?.data;
-        } else {
-          throw firstErr;
-        }
-      }
+      // Call agent service
+      const { data } = await api.post("/agent", {
+        prompt: trimmed,
+        chatId: activeChat._id,
+        agent: agentToSend,
+      });
+      const responseData = data?.data;
 
       // Build assistant message from agent response
       const agentMessage = {
@@ -310,7 +294,7 @@ const ChatInput = ({ value = "", onChange, isGenerating, setIsGenerating }) => {
 
       {/* Disclaimer */}
       <p className="text-xs text-zinc-500 text-center mt-2 font-normal tracking-tight">
-        AI-generated, for reference only
+        This website is created by prince sharma 🤴
       </p>
     </div>
   );

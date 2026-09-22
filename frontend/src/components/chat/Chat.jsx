@@ -34,6 +34,7 @@ const Chat = () => {
       if (!selectedChat?._id) {
         dispatch(clearMessageData());
         setIsLoadingMessages(false);
+        setIsGenerating(false);
         return;
       }
 
