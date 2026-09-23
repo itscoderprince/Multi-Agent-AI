@@ -27,7 +27,7 @@ function ChatLoadingSpinner() {
 /**
  * Main conversation message viewport.
  * Orchestrates UserMessage, AssistantMessage, ChatEmptyState, ThinkingIndicator, and ChatLoadingSpinner.
- * Adopts a clean DeepSeek / ChatGPT / Groq aesthetic without avatar clutter.
+ * Responsive padding for mobile viewports and bottom input floating gradient.
  */
 export function ChatMsg({ onSelectPrompt, isGenerating, isLoading }) {
   const messages = useSelector((state) => state.messages.messageData);
@@ -46,8 +46,8 @@ export function ChatMsg({ onSelectPrompt, isGenerating, isLoading }) {
     <div className="flex-1 relative min-h-0 flex flex-col w-full h-full overflow-hidden">
       <MessageScrollerProvider>
         <MessageScroller className="flex-1 w-full h-full">
-          <MessageScrollerViewport className="px-0 py-2 h-full">
-            <MessageScrollerContent className="max-w-3xl mx-auto w-full px-4 gap-0.5 pb-28">
+          <MessageScrollerViewport className="px-0 py-1 sm:py-2 h-full">
+            <MessageScrollerContent className="max-w-3xl mx-auto w-full px-3 sm:px-4 gap-0.5 pt-1.5 pb-36 sm:pb-32">
               {messages.map((msg, index) => {
                 const isUser = msg.role === "user";
                 const isNewTurn = isUser && index > 0;
@@ -79,7 +79,7 @@ export function ChatMsg({ onSelectPrompt, isGenerating, isLoading }) {
               )}
             </MessageScrollerContent>
           </MessageScrollerViewport>
-          <MessageScrollerButton className="bottom-28 z-30 shadow-lg bg-[#1e2025] hover:bg-[#282d38] border border-white/10 text-white rounded-full size-8" />
+          <MessageScrollerButton className="bottom-32 sm:bottom-28 z-30 shadow-lg bg-[#1e2025] hover:bg-[#282d38] border border-white/10 text-white rounded-full size-8" />
         </MessageScroller>
       </MessageScrollerProvider>
     </div>

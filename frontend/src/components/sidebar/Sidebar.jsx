@@ -1,4 +1,4 @@
-import { MessageCirclePlus, PanelLeftIcon } from "lucide-react";
+import { MessageCirclePlus, PanelLeftIcon, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -12,7 +12,7 @@ import {
 } from "@/redux/slices/chatSlice";
 import { clearMessageData } from "@/redux/slices/messageSlice";
 
-const Sidebar = () => {
+const Sidebar = ({ isMobileOpen = false, setIsMobileOpen }) => {
   const dispatch = useDispatch();
   const [collapsed, setCollapsed] = useState(false);
   const chats = useSelector((state) => state.chats.chatData);
@@ -39,25 +39,50 @@ const Sidebar = () => {
     fetchChats();
   }, [dispatch]);
 
-  // Reset to fresh welcome state without creating empty DB rows
+  // Reset to fresh welcome state without creating empty DB rows and auto-close mobile drawer
   const handleCreateChat = () => {
     dispatch(setSelectChat(null));
     dispatch(clearMessageData());
+    setIsMobileOpen?.(false);
+  };
+
+  // Select chat and auto-close mobile drawer
+  const handleSelectChat = (chat) => {
+    dispatch(setSelectChat(chat));
+    setIsMobileOpen?.(false);
   };
 
   return (
-    <aside
-      className={`fixed lg:static inset-y-0 left-0 z-50 h-screen shrink-0 border-r border-white/6 bg-[#0d0f14] flex flex-col transition-[width] duration-200 ease-in-out ${
-        collapsed ? "w-12" : "w-65.25"
-      }`}
-    >
+    <>
+      {/* Mobile Backdrop Overlay (ChatGPT style) */}
       <div
-        className={`flex items-center py-3 ${
-          collapsed ? "justify-center px-2" : "justify-between px-3.5"
+        onClick={() => setIsMobileOpen?.(false)}
+        className={`fixed inset-0 bg-black/65 backdrop-blur-xs z-40 transition-opacity duration-300 lg:hidden ${
+          isMobileOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        }`}
+        aria-hidden="true"
+      />
+
+      {/* Main Sidebar Panel / Mobile Drawer */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 h-screen shrink-0 border-r border-white/6 bg-[#0d0f14] flex flex-col transition-all duration-300 ease-in-out lg:static ${
+          isMobileOpen
+            ? "translate-x-0 shadow-2xl"
+            : "-translate-x-full lg:translate-x-0"
+        } ${
+          collapsed
+            ? "w-[82%] sm:w-72 lg:w-12"
+            : "w-[82%] sm:w-72 lg:w-65.25"
         }`}
       >
-        {!collapsed && (
-          <div className="flex items-center gap-2 min-w-0">
+        {/* Header Bar */}
+        <div
+          className={`flex items-center py-3 ${
+            collapsed ? "justify-between lg:justify-center px-3.5 lg:px-2" : "justify-between px-3.5"
+          }`}
+        >
+          {/* Logo & Brand (Always shown on mobile; hidden on desktop when collapsed) */}
+          <div className={`flex items-center gap-2 min-w-0 ${collapsed ? "flex lg:hidden" : "flex"}`}>
             <img
               src="/favicon.svg"
               alt="SarthiAi"
@@ -67,91 +92,136 @@ const Sidebar = () => {
               SarthiAi
             </span>
           </div>
-        )}
 
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          className="relative group hidden lg:inline-flex text-muted-foreground hover:text-white cursor-pointer overflow-hidden"
-          aria-label="Toggle sidebar"
-          onClick={() => setCollapsed((prev) => !prev)}
-        >
-          {collapsed ? (
-            <>
-              <img
-                src="/favicon.svg"
-                alt="SarthiAi"
-                className="size-7 shrink-0 transition-all duration-300 ease-in-out group-hover:opacity-0 group-hover:scale-75"
-              />
-              <PanelLeftIcon className="absolute size-4 opacity-0 scale-75 transition-all duration-300 ease-in-out group-hover:opacity-100 group-hover:scale-100" />
-            </>
-          ) : (
-            <PanelLeftIcon className="size-4 transition-transform duration-200 group-hover:scale-105" />
-          )}
-        </Button>
-      </div>
-
-      <div className={`pt-3 pb-2 ${collapsed ? "px-2" : "px-3.5"}`}>
-        {!collapsed ? (
+          {/* Desktop Toggle Button */}
           <Button
-            onClick={handleCreateChat}
-            className="w-full h-9 rounded-full justify-center gap-2 font-medium shadow-sm transition-transform active:scale-[0.98] cursor-pointer bg-white text-zinc-900 hover:bg-zinc-200"
-          >
-            <MessageCirclePlus className="size-4" />
-            <span>New Chat</span>
-          </Button>
-        ) : (
-          <Button
-            onClick={handleCreateChat}
             variant="ghost"
             size="icon-sm"
-            className="w-full justify-center text-muted-foreground hover:text-white cursor-pointer"
-            aria-label="New chat"
+            className="relative group hidden lg:inline-flex text-muted-foreground hover:text-white cursor-pointer overflow-hidden"
+            aria-label="Toggle sidebar"
+            onClick={() => setCollapsed((prev) => !prev)}
           >
-            <MessageCirclePlus />
+            {collapsed ? (
+              <>
+                <img
+                  src="/favicon.svg"
+                  alt="SarthiAi"
+                  className="size-7 shrink-0 transition-all duration-300 ease-in-out group-hover:opacity-0 group-hover:scale-75"
+                />
+                <PanelLeftIcon className="absolute size-4 opacity-0 scale-75 transition-all duration-300 ease-in-out group-hover:opacity-100 group-hover:scale-100" />
+              </>
+            ) : (
+              <PanelLeftIcon className="size-4 transition-transform duration-200 group-hover:scale-105" />
+            )}
           </Button>
-        )}
-      </div>
 
-      {collapsed ? (
-        <div className="flex justify-center px-2 py-2">
-          <RecentChatsDropdown
-            chats={chats}
-            selectedChat={selectedChat}
-            onSelectChat={(chat) => dispatch(setSelectChat(chat))}
-          />
+          {/* Mobile Close Button (X icon) */}
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            className="lg:hidden text-zinc-400 hover:text-white cursor-pointer size-8"
+            aria-label="Close sidebar"
+            onClick={() => setIsMobileOpen?.(false)}
+          >
+            <X className="size-4.5" />
+          </Button>
         </div>
-      ) : (
-        <div className="flex-1 overflow-y-auto px-2 py-2 text-sm space-y-4">
-          {/* User's Recent Chats */}
-          {chats && chats.length > 0 ? (
-            <div>
-              <div className="px-2 pb-1.5 text-[11px] font-semibold tracking-wider text-zinc-500 uppercase">
-                Recent
-              </div>
-              <div className="space-y-0.5">
-                {chats.map((chat) => (
-                  <ChatItem
-                    key={chat._id}
-                    chat={chat}
-                    isSelected={selectedChat?._id === chat._id}
-                    onSelect={() => dispatch(setSelectChat(chat))}
-                  />
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="px-3 py-6 text-center text-xs text-zinc-500">
-              No conversations yet
+
+        {/* New Chat Button */}
+        <div className={`pt-2 pb-2 ${collapsed ? "px-3.5 lg:px-2" : "px-3.5"}`}>
+          <div className={collapsed ? "block lg:hidden" : "block"}>
+            <Button
+              onClick={handleCreateChat}
+              className="w-full h-9 rounded-full justify-center gap-2 font-medium shadow-sm transition-transform active:scale-[0.98] cursor-pointer bg-white text-zinc-900 hover:bg-zinc-200"
+            >
+              <MessageCirclePlus className="size-4" />
+              <span>New Chat</span>
+            </Button>
+          </div>
+
+          {collapsed && (
+            <div className="hidden lg:block">
+              <Button
+                onClick={handleCreateChat}
+                variant="ghost"
+                size="icon-sm"
+                className="w-full justify-center text-muted-foreground hover:text-white cursor-pointer"
+                aria-label="New chat"
+              >
+                <MessageCirclePlus />
+              </Button>
             </div>
           )}
         </div>
-      )}
 
-      <div className="p-2.5 mt-auto">
-        <NavUser user={user} collapsed={collapsed} />
-      </div>
-    </aside>
+        {/* Chat History List */}
+        {collapsed ? (
+          <>
+            {/* Desktop Collapsed Dropdown */}
+            <div className="hidden lg:flex justify-center px-2 py-2">
+              <RecentChatsDropdown
+                chats={chats}
+                selectedChat={selectedChat}
+                onSelectChat={handleSelectChat}
+              />
+            </div>
+            {/* Mobile Full List */}
+            <div className="flex-1 overflow-y-auto px-2 py-2 text-sm space-y-4 lg:hidden">
+              {chats && chats.length > 0 ? (
+                <div>
+                  <div className="px-2 pb-1.5 text-[11px] font-semibold tracking-wider text-zinc-500 uppercase">
+                    Recent
+                  </div>
+                  <div className="space-y-0.5">
+                    {chats.map((chat) => (
+                      <ChatItem
+                        key={chat._id}
+                        chat={chat}
+                        isSelected={selectedChat?._id === chat._id}
+                        onSelect={() => handleSelectChat(chat)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="px-3 py-6 text-center text-xs text-zinc-500">
+                  No conversations yet
+                </div>
+              )}
+            </div>
+          </>
+        ) : (
+          <div className="flex-1 overflow-y-auto px-2 py-2 text-sm space-y-4">
+            {chats && chats.length > 0 ? (
+              <div>
+                <div className="px-2 pb-1.5 text-[11px] font-semibold tracking-wider text-zinc-500 uppercase">
+                  Recent
+                </div>
+                <div className="space-y-0.5">
+                  {chats.map((chat) => (
+                    <ChatItem
+                      key={chat._id}
+                      chat={chat}
+                      isSelected={selectedChat?._id === chat._id}
+                      onSelect={() => handleSelectChat(chat)}
+                    />
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="px-3 py-6 text-center text-xs text-zinc-500">
+                No conversations yet
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* User Footer Profile */}
+        <div className="p-2.5 mt-auto border-t border-white/5">
+          <NavUser user={user} collapsed={collapsed} />
+        </div>
+      </aside>
+    </>
   );
 };
 

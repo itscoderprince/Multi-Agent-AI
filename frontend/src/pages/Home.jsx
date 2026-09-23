@@ -17,6 +17,7 @@ export default function Home() {
   const user = useSelector((state) => state.user.userData);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   /**
    * Authenticates with Firebase via Google popup, then exchanges the token with backend gateway.
@@ -83,9 +84,14 @@ export default function Home() {
 
   if (user) {
     return (
-      <main className="h-screen w-screen flex bg-[#0d0f14] text-white overflow-hidden">
-        <Sidebar />
-        <ChatArea />
+      <main className="h-screen w-screen flex bg-[#0d0f14] text-white overflow-hidden relative">
+        <Sidebar
+          isMobileOpen={isMobileSidebarOpen}
+          setIsMobileOpen={setIsMobileSidebarOpen}
+        />
+        <ChatArea
+          onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
+        />
         <Artifact />
       </main>
     );

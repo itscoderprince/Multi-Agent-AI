@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/sheet";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 // Clean theme that removes gray bounding boxes behind tokens/lines
 const cleanSyntaxTheme = {
@@ -79,7 +80,6 @@ function buildRunnableHtml(files) {
   doc = doc.replace(/<script\b[^>]*\bsrc=["'][^"']*\.js["'][^>]*\/?>/gi, "");
 
   // 3. Inject DOMContentLoaded and window.onload polyfill into <head>
-  // Prevents race conditions in iframe srcDoc where scripts wait on DOMContentLoaded that already fired
   const domReadyPolyfill = `<script>
 (function() {
   var origAdd = document.addEventListener;
@@ -142,10 +142,11 @@ function buildRunnableHtml(files) {
 
 /**
  * Artifact Component using Shadcn Sheet
- * Slide-over canvas from the right displaying the live interactive preview or file code.
+ * Full-width responsive mobile sheet & resizable desktop canvas.
  */
 export default function Artifact() {
   const dispatch = useDispatch();
+  const isMobile = useIsMobile();
   const activeArtifact = useSelector((state) => state.messages.activeArtifact);
   const isArtifactOpen = useSelector((state) => state.messages.isArtifactOpen);
   const allMessages = useSelector((state) => state.messages.messageData);
@@ -161,7 +162,7 @@ export default function Artifact() {
   const [isMaximized, setIsMaximized] = useState(false);
   const isResizing = useRef(false);
 
-  // Drag resize handler for sliding width left and right
+  // Drag resize handler for sliding width left and right (desktop only)
   const startResize = (e) => {
     e.preventDefault();
     isResizing.current = true;
@@ -274,37 +275,37 @@ export default function Artifact() {
       <SheetContent
         side="right"
         style={{
-          width: isMaximized ? "96vw" : `${panelWidth}px`,
-          maxWidth: "96vw",
+          width: isMobile ? "100vw" : isMaximized ? "96vw" : `${panelWidth}px`,
+          maxWidth: isMobile ? "100vw" : "96vw",
         }}
-        className="p-0 gap-0 bg-[#0d0f14] border-l border-white/10 text-white flex flex-col h-full z-50 overflow-hidden shadow-2xl transition-[width] duration-75"
+        className="p-0 gap-0 bg-[#0d0f14] border-l border-white/10 text-white flex flex-col h-full z-50 overflow-hidden shadow-2xl transition-[width] duration-75 w-full"
       >
-        {/* Sliding Resize Handle on Left Border (Matching User Screenshot 3) */}
+        {/* Sliding Resize Handle on Left Border (Desktop only) */}
         <div
           onMouseDown={startResize}
-          className="absolute -left-1.5 top-0 bottom-0 w-3 cursor-ew-resize z-50 flex items-center justify-center group select-none"
+          className="absolute -left-1.5 top-0 bottom-0 w-3 cursor-ew-resize z-50 hidden lg:flex items-center justify-center group select-none"
           title="Drag to resize width"
         >
           <div className="w-1.5 h-12 rounded-full bg-zinc-600/80 group-hover:bg-emerald-400 group-hover:scale-y-125 transition-all shadow-md" />
         </div>
 
         {/* Header Bar */}
-        <div className="h-13 px-4 border-b border-white/8 flex items-center justify-between bg-[#0d0f14] shrink-0 pr-12">
+        <div className="h-12 sm:h-13 px-3 sm:px-4 border-b border-white/8 flex items-center justify-between bg-[#0d0f14] shrink-0 pr-10 sm:pr-12">
           {/* Title */}
           <div className="flex items-center gap-2 min-w-0">
-            <h2 className="text-sm font-semibold text-zinc-100 truncate tracking-tight">
+            <h2 className="text-xs sm:text-sm font-semibold text-zinc-100 truncate tracking-tight">
               {title}
             </h2>
           </div>
 
           {/* Action Toolbar */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1 sm:gap-1.5">
             {/* View Switcher: Preview / Code */}
             <Button
               variant="ghost"
               size="xs"
               onClick={() => setView(view === "preview" ? "code" : "preview")}
-              className="text-zinc-400 hover:text-white h-7 px-2.5 text-xs gap-1.5 cursor-pointer bg-white/5 hover:bg-white/10 rounded-md"
+              className="text-zinc-400 hover:text-white h-7 px-2 sm:px-2.5 text-xs gap-1 sm:gap-1.5 cursor-pointer bg-white/5 hover:bg-white/10 rounded-md"
               title={view === "preview" ? "View Code" : "View Live Preview"}
             >
               {view === "preview" ? (
@@ -320,12 +321,12 @@ export default function Artifact() {
               )}
             </Button>
 
-            {/* Quick Maximize / Restore Toggle Button */}
+            {/* Quick Maximize / Restore Toggle Button (Desktop only) */}
             <Button
               variant="ghost"
               size="icon-xs"
               onClick={() => setIsMaximized((prev) => !prev)}
-              className="text-zinc-400 hover:text-white h-7 w-7 cursor-pointer"
+              className="hidden lg:inline-flex text-zinc-400 hover:text-white h-7 w-7 cursor-pointer"
               title={isMaximized ? "Restore size" : "Maximize width"}
             >
               {isMaximized ? (
@@ -378,7 +379,7 @@ export default function Artifact() {
 
         {/* File Tabs Bar - ALWAYS categorized by index.html, style.css, script.js */}
         {files.length > 0 && (
-          <div className="h-10 px-4 border-b border-white/6 bg-[#090b10] flex items-center gap-2 overflow-x-auto shrink-0 scrollbar-none">
+          <div className="h-9 sm:h-10 px-3 sm:px-4 border-b border-white/6 bg-[#090b10] flex items-center gap-1.5 sm:gap-2 overflow-x-auto shrink-0 scrollbar-none">
             {files.map((file, idx) => {
               const isSelected = idx === selectedFileIdx;
               return (
@@ -388,14 +389,14 @@ export default function Artifact() {
                   onClick={() => {
                     setSelectedFileIdx(idx);
                   }}
-                  className={`h-7 px-3 text-xs font-mono rounded-md flex items-center gap-1.5 transition-all cursor-pointer border ${
+                  className={`h-6.5 sm:h-7 px-2.5 sm:px-3 text-xs font-mono rounded-md flex items-center gap-1 sm:gap-1.5 transition-all cursor-pointer border shrink-0 ${
                     isSelected
                       ? "bg-[#1f2430] border-white/20 text-white font-medium shadow-xs"
                       : "bg-transparent border-transparent text-zinc-400 hover:text-zinc-200 hover:bg-white/5"
                   }`}
                 >
                   <FileCode
-                    className={`size-3.5 ${
+                    className={`size-3 sm:size-3.5 ${
                       isSelected ? "text-emerald-400" : "text-zinc-400"
                     }`}
                   />
@@ -410,18 +411,18 @@ export default function Artifact() {
         <div className="flex-1 relative min-h-0 flex flex-col overflow-hidden bg-[#07080c]">
           {view === "preview" ? (
             /* Live Interactive Running Preview */
-            <div className="flex-1 w-full h-full flex items-center justify-center p-4 overflow-hidden bg-[#0b0d14]">
+            <div className="flex-1 w-full h-full flex items-center justify-center p-2 sm:p-4 overflow-hidden bg-[#0b0d14]">
               <iframe
                 key={previewKey}
                 srcDoc={runnableHtml}
                 title="Artifact Preview"
                 sandbox="allow-scripts allow-modals allow-forms allow-same-origin"
-                className="w-full h-full border-0 rounded-xl bg-transparent"
+                className="w-full h-full border-0 rounded-lg sm:rounded-xl bg-transparent"
               />
             </div>
           ) : (
-            /* Code View with Syntax Highlighting and Line Numbers (No fake selection rectangles) */
-            <div className="flex-1 overflow-auto p-4 text-[13px] bg-[#07080c] font-mono scrollbar-thin">
+            /* Code View with Syntax Highlighting and Line Numbers */
+            <div className="flex-1 overflow-auto p-3 sm:p-4 text-[12px] sm:text-[13px] bg-[#07080c] font-mono scrollbar-thin">
               <SyntaxHighlighter
                 language={activeFile?.name?.split(".").pop() || "javascript"}
                 style={cleanSyntaxTheme}
@@ -429,7 +430,7 @@ export default function Artifact() {
                 wrapLines={false}
                 lineNumberStyle={{
                   minWidth: "2.5em",
-                  paddingRight: "1em",
+                  paddingRight: "0.8em",
                   color: "#4b5563",
                   textAlign: "right",
                   userSelect: "none",
