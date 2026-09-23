@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback, memo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -41,6 +41,7 @@ const AGENTS = [
  * Modern AI Chat input component styled after ChatGPT / Groq / DeepSeek
  * Mobile-optimized with touch-friendly targets, iOS auto-zoom prevention,
  * and adaptive action pills.
+ * Optimized with useCallback and memo for responsive keystroke performance.
  */
 const ChatInput = ({ value = "", onChange, isGenerating, setIsGenerating }) => {
   const dispatch = useDispatch();
@@ -57,7 +58,7 @@ const ChatInput = ({ value = "", onChange, isGenerating, setIsGenerating }) => {
   const currentAgent = AGENTS.find((a) => a.id === selectedAgent) || AGENTS[0];
   const CurrentIcon = currentAgent.icon;
 
-  const handleSend = async () => {
+  const handleSend = useCallback(async () => {
     const trimmed = value.trim();
     if (!trimmed || loading || isSendingRef.current) return;
 
@@ -122,16 +123,16 @@ const ChatInput = ({ value = "", onChange, isGenerating, setIsGenerating }) => {
       setLoading(false);
       isSendingRef.current = false;
     }
-  };
+  }, [value, loading, selectedChat, selectedAgent, webSearch, dispatch, onChange, setLoading]);
 
-  const handleKeyDown = (e) => {
+  const handleKeyDown = useCallback((e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       if (!loading) {
         handleSend();
       }
     }
-  };
+  }, [loading, handleSend]);
 
   const hasText = Boolean(value.trim());
 
@@ -299,4 +300,4 @@ const ChatInput = ({ value = "", onChange, isGenerating, setIsGenerating }) => {
   );
 };
 
-export default ChatInput;
+export default memo(ChatInput);

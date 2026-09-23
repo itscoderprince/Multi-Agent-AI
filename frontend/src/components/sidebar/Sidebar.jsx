@@ -1,6 +1,6 @@
 import { MessageCirclePlus, PanelLeftIcon, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import fetchData from "@/features/fetchData";
 import NavUser from "./NavUser";
@@ -40,17 +40,17 @@ const Sidebar = ({ isMobileOpen = false, setIsMobileOpen }) => {
   }, [dispatch]);
 
   // Reset to fresh welcome state without creating empty DB rows and auto-close mobile drawer
-  const handleCreateChat = () => {
+  const handleCreateChat = useCallback(() => {
     dispatch(setSelectChat(null));
     dispatch(clearMessageData());
     setIsMobileOpen?.(false);
-  };
+  }, [dispatch, setIsMobileOpen]);
 
   // Select chat and auto-close mobile drawer
-  const handleSelectChat = (chat) => {
+  const handleSelectChat = useCallback((chat) => {
     dispatch(setSelectChat(chat));
     setIsMobileOpen?.(false);
-  };
+  }, [dispatch, setIsMobileOpen]);
 
   return (
     <>
@@ -178,7 +178,7 @@ const Sidebar = ({ isMobileOpen = false, setIsMobileOpen }) => {
                         key={chat._id}
                         chat={chat}
                         isSelected={selectedChat?._id === chat._id}
-                        onSelect={() => handleSelectChat(chat)}
+                        onSelect={handleSelectChat}
                       />
                     ))}
                   </div>
@@ -203,7 +203,7 @@ const Sidebar = ({ isMobileOpen = false, setIsMobileOpen }) => {
                       key={chat._id}
                       chat={chat}
                       isSelected={selectedChat?._id === chat._id}
-                      onSelect={() => handleSelectChat(chat)}
+                      onSelect={handleSelectChat}
                     />
                   ))}
                 </div>

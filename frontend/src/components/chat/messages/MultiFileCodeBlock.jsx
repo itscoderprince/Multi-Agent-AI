@@ -1,8 +1,7 @@
-import { useState } from "react";
+import { useState, memo } from "react";
 import { useDispatch } from "react-redux";
 import { Check, Copy, Download, Play, FileCode } from "lucide-react";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { SyntaxHighlighter, oneDark } from "@/lib/syntaxHighlighter";
 import { setActiveArtifact } from "@/redux/slices/messageSlice";
 
 // Custom dark syntax theme matching code editor appearance
@@ -47,8 +46,9 @@ const EXT_TO_LANG = {
  * - Line numbers and syntax highlighting
  * - Copy, Download, and [▶ Run] toolbar actions
  * - [▶ Run] packages all files and opens the live interactive Sheet
+ * Memoized to prevent heavy Prism re-parsing across render cycles.
  */
-export default function MultiFileCodeBlock({ files = [], title = "Simple Calculator" }) {
+export function MultiFileCodeBlock({ files = [], title = "Simple Calculator" }) {
   const dispatch = useDispatch();
   const [activeIdx, setActiveIdx] = useState(0);
   const [copied, setCopied] = useState(false);
@@ -193,3 +193,5 @@ export default function MultiFileCodeBlock({ files = [], title = "Simple Calcula
     </div>
   );
 }
+
+export default memo(MultiFileCodeBlock);

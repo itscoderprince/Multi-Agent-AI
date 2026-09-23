@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, memo } from "react";
 import { useDispatch } from "react-redux";
 import { MoreHorizontal, Trash2, Loader2 } from "lucide-react";
 import {
@@ -14,6 +14,7 @@ import { cn } from "cn";
 
 /**
  * Renders an individual chat item in the sidebar with a dropdown actions menu.
+ * Memoized to prevent rerenders when other list items or global states change.
  */
 const ChatItem = ({ chat, isSelected, onSelect }) => {
   const dispatch = useDispatch();
@@ -36,6 +37,10 @@ const ChatItem = ({ chat, isSelected, onSelect }) => {
     }
   };
 
+  const handleSelect = () => {
+    onSelect?.(chat);
+  };
+
   return (
     <div
       className={cn(
@@ -48,7 +53,7 @@ const ChatItem = ({ chat, isSelected, onSelect }) => {
       {/* Clickable chat title */}
       <button
         type="button"
-        onClick={onSelect}
+        onClick={handleSelect}
         title={chat.title || "New Chat"}
         className="flex-1 min-w-0 text-left truncate px-2.5 py-1.5 text-sm cursor-pointer outline-none"
       >
@@ -95,4 +100,4 @@ const ChatItem = ({ chat, isSelected, onSelect }) => {
   );
 };
 
-export default ChatItem;
+export default memo(ChatItem);

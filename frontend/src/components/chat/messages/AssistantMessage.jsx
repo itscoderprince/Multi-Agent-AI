@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, memo } from "react";
 import { useDispatch } from "react-redux";
 import { CheckCheck, Copy, ExternalLink, Code2, Eye } from "lucide-react";
 import Markdown from "react-markdown";
@@ -62,11 +62,7 @@ function ImageCard({ url, index }) {
 
 /**
  * AssistantMessage component rendering the AI response.
- * Styled after leading AI apps (ChatGPT / Claude / DeepSeek / Perplexity):
- * - Clean transparent background (no card / box borders)
- * - Responsive, sleek media grid for search / vision images
- * - Directly renders formatted markdown text
- * - Minimal copy button icon below the response
+ * Memoized to prevent rerendering markdown and code highlightings on every keystroke or new message.
  */
 export function AssistantMessage({ content, images = [], artifact = null, uiFiles = [] }) {
   const dispatch = useDispatch();
@@ -143,14 +139,16 @@ export function AssistantMessage({ content, images = [], artifact = null, uiFile
     dispatch(setActiveArtifact(payload));
   };
 
-  const cleanImages = Array.isArray(images)
-    ? images.filter(
-        (img) =>
-          typeof img === "string" &&
-          img.trim().length > 0 &&
-          (img.startsWith("http://") || img.startsWith("https://"))
-      )
-    : [];
+  const cleanImages = useMemo(() => {
+    return Array.isArray(images)
+      ? images.filter(
+          (img) =>
+            typeof img === "string" &&
+            img.trim().length > 0 &&
+            (img.startsWith("http://") || img.startsWith("https://"))
+        )
+      : [];
+  }, [images]);
 
   return (
     <div className="w-full group/msg animate-in fade-in duration-200">
@@ -262,4 +260,4 @@ export function AssistantMessage({ content, images = [], artifact = null, uiFile
   );
 }
 
-export default AssistantMessage;
+export default memo(AssistantMessage);

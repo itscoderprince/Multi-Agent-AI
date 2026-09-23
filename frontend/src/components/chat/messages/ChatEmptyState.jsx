@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Code2, Compass, Lightbulb } from "lucide-react";
 import {
   Empty,
@@ -31,7 +32,7 @@ const SUGGESTED_PROMPTS = [
 
 /**
  * ChatEmptyState component rendering the initial greeting and suggested prompts.
- * Fully responsive for mobile and desktop screens.
+ * Fully responsive for mobile and desktop screens. Memoized for rendering efficiency.
  */
 export function ChatEmptyState({ onSelectPrompt }) {
   return (
@@ -84,4 +85,4 @@ export function ChatEmptyState({ onSelectPrompt }) {
   );
 }
 
-export default ChatEmptyState;
+export default memo(ChatEmptyState);

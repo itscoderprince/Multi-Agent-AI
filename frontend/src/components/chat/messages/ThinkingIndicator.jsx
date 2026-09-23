@@ -1,5 +1,8 @@
+import { memo } from "react";
+
 /**
  * Minimalist thinking / generating indicator styled after modern AI platforms (DeepSeek, ChatGPT).
+ * Memoized to prevent any unnecessary rerenders during streaming cycles.
  */
 export function ThinkingIndicator() {
   return (
@@ -15,4 +18,4 @@ export function ThinkingIndicator() {
   );
 }
 
-export default ThinkingIndicator;
+export default memo(ThinkingIndicator);

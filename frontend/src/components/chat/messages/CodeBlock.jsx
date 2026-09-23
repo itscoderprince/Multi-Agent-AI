@@ -1,8 +1,7 @@
-import { useState } from "react";
+import { useState, memo } from "react";
 import { useDispatch } from "react-redux";
 import { Check, Copy, Download, Play } from "lucide-react";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { SyntaxHighlighter, oneDark } from "@/lib/syntaxHighlighter";
 import { setActiveArtifact } from "@/redux/slices/messageSlice";
 
 // Custom dark syntax theme
@@ -58,6 +57,7 @@ const EXT_MAP = {
 
 /**
  * CodeBlock with Copy, Download, and Run actions matching ChatGPT / DeepSeek.
+ * Memoized to avoid heavy Prism token re-parsing across render cycles.
  */
 export function CodeBlock({ language = "text", children }) {
   const dispatch = useDispatch();
@@ -178,4 +178,4 @@ export function CodeBlock({ language = "text", children }) {
   );
 }
 
-export default CodeBlock;
+export default memo(CodeBlock);

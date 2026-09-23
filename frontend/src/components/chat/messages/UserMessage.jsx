@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, memo } from "react";
 import { Copy, CheckCheck } from "lucide-react";
 import {
   Tooltip,
@@ -8,8 +8,7 @@ import {
 
 /**
  * UserMessage component rendering the human prompt.
- * Styled after leading AI apps (ChatGPT / Perplexity):
- * Deep blue bubble with a right-aligned action row containing a copy button icon.
+ * Memoized so past user prompts do not rerender on subsequent messages or keystrokes.
  */
 export function UserMessage({ content }) {
   const [copied, setCopied] = useState(false);
@@ -57,4 +56,4 @@ export function UserMessage({ content }) {
   );
 }
 
-export default UserMessage;
+export default memo(UserMessage);

@@ -1,3 +1,4 @@
+import { memo } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -144,4 +145,4 @@ const NavUser = ({ user, collapsed }) => {
   );
 };
 
-export default NavUser;
+export default memo(NavUser);

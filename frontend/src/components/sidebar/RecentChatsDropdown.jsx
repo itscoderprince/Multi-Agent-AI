@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { MessageCircle, Trash2 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -13,6 +14,7 @@ import deleteChat from "@/features/deleteChat";
 
 /**
  * Dropdown menu for recent chats displayed when the sidebar is collapsed.
+ * Memoized to prevent rerenders when parent layout changes.
  */
 const RecentChatsDropdown = ({ chats, selectedChat, onSelectChat }) => {
   const dispatch = useDispatch();
@@ -107,4 +109,4 @@ const RecentChatsDropdown = ({ chats, selectedChat, onSelectChat }) => {
   );
 };
 
-export default RecentChatsDropdown;
+export default memo(RecentChatsDropdown);

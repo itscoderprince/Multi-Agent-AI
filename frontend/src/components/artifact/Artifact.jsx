@@ -17,8 +17,7 @@ import {
   Sheet,
   SheetContent,
 } from "@/components/ui/sheet";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { SyntaxHighlighter, oneDark } from "@/lib/syntaxHighlighter";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 // Clean theme that removes gray bounding boxes behind tokens/lines

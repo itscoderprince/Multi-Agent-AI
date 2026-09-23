@@ -1,16 +1,20 @@
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "@/utils/firebase";
 import api from "@/utils/axios";
 import { setUserData } from "@/redux/slices/userSlice";
-import LoginCard from "@/components/auth/LoginCard";
 import Sidebar from "@/components/sidebar/Sidebar";
 import ChatArea from "@/components/chat/Chat";
-import Artifact from "@/components/artifact/Artifact";
+import { Loader2 } from "lucide-react";
+
+// Lazy-loaded components for optimal initial bundle & performance
+const Artifact = lazy(() => import("@/components/artifact/Artifact"));
+const LoginCard = lazy(() => import("@/components/auth/LoginCard"));
 
 /**
  * Main landing page rendering the centered login card or the chat workspace when authenticated.
+ * Uses React.lazy & Suspense for code-splitting heavy modules.
  */
 export default function Home() {
   const dispatch = useDispatch();
@@ -92,19 +96,23 @@ export default function Home() {
         <ChatArea
           onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
         />
-        <Artifact />
+        <Suspense fallback={null}>
+          <Artifact />
+        </Suspense>
       </main>
     );
   }
 
   return (
     <main className="min-h-screen flex items-center justify-center p-4 bg-muted/20">
-      <LoginCard
-        onLogin={handleGoogleLogin}
-        onDemoLogin={handleDemoLogin}
-        loading={loading}
-        error={error}
-      />
+      <Suspense fallback={<Loader2 className="size-6 text-zinc-400 animate-spin" />}>
+        <LoginCard
+          onLogin={handleGoogleLogin}
+          onDemoLogin={handleDemoLogin}
+          loading={loading}
+          error={error}
+        />
+      </Suspense>
     </main>
   );
 }

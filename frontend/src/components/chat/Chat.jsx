@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Layers, PanelLeft, SquarePen } from "lucide-react";
 import fetchData from "@/features/fetchData";
@@ -74,10 +74,14 @@ const Chat = ({ onOpenMobileSidebar }) => {
     };
   }, [selectedChat?._id, dispatch]);
 
-  const handleNewChat = () => {
+  const handleNewChat = useCallback(() => {
     dispatch(setSelectChat(null));
     dispatch(clearMessageData());
-  };
+  }, [dispatch]);
+
+  const handleSelectPrompt = useCallback((prompt) => {
+    setSelectedPrompt(prompt);
+  }, []);
 
   return (
     <section className="flex-1 relative flex flex-col min-w-0 h-screen overflow-hidden bg-[#0a0c10] bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.08),rgba(255,255,255,0))]">
@@ -169,7 +173,7 @@ const Chat = ({ onOpenMobileSidebar }) => {
       {/* Main Chat Message Viewport */}
       <div className="flex-1 relative min-h-0 w-full h-full overflow-hidden flex flex-col">
         <ChatMsg
-          onSelectPrompt={(prompt) => setSelectedPrompt(prompt)}
+          onSelectPrompt={handleSelectPrompt}
           isGenerating={isGenerating}
           isLoading={isLoadingMessages}
         />
